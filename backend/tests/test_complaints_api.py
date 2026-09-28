@@ -18,7 +18,7 @@ def _seed_one_complaint():
             Complaint(
                 complaint_id="api-complaint-1",
                 customer_id="api-cust-1",
-                received_at=dt.datetime.now(dt.timezone.utc),
+                received_at=dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc),
                 channel="web",
                 text="My bill is wrong.",
                 product="fiber_basic",
