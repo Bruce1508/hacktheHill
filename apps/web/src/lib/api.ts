@@ -11,7 +11,10 @@ export type Complaint = {
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 export async function fetchComplaints(): Promise<Complaint[]> {
-  const res = await fetch(`${API_URL}/complaints`, { cache: "no-store" });
+  const res = await fetch(`${API_URL}/complaints`, {
+    cache: "no-store",
+    headers: { "X-Demo-User": "demo-agent" },
+  });
   if (!res.ok) {
     throw new Error(`Failed to fetch complaints: ${res.status}`);
   }

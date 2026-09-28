@@ -38,7 +38,7 @@ services:
       - ../apps/web:/app
     command: sh -c "corepack enable && pnpm install && pnpm dev -- --hostname 0.0.0.0"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://api:8000
     ports:
       - "3000:3000"
     depends_on:
