@@ -36,6 +36,12 @@ def test_list_complaints_returns_seeded_row(client):
     ids = [row["complaint_id"] for row in response.json()]
     assert "api-complaint-1" in ids
 
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    with get_session(database_url) as session:
+        session.delete(session.get(Complaint, "api-complaint-1"))
+        session.delete(session.get(Customer, "api-cust-1"))
+        session.commit()
+
 
 def test_list_complaints_requires_a_demo_user(client):
     response = client.get("/complaints")
