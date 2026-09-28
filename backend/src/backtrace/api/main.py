@@ -1,8 +1,10 @@
 import os
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from sqlalchemy import select
 
+from backtrace.api.auth import CurrentUser, current_user
 from backtrace.contracts.complaints import ComplaintOut
 from backtrace.db.models import Complaint
 from backtrace.db.session import get_session
@@ -16,7 +18,11 @@ def health() -> dict[str, str]:
 
 
 @app.get("/complaints")
-def list_complaints(limit: int = 100, offset: int = 0) -> list[ComplaintOut]:
+def list_complaints(
+    _user: Annotated[CurrentUser, Depends(current_user)],
+    limit: int = 100,
+    offset: int = 0,
+) -> list[ComplaintOut]:
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     with get_session(database_url) as session:
         rows = session.execute(
