@@ -28,3 +28,11 @@ Checked against `timescale/timescaledb-ha:pg16` (local Docker image), 2026-09-28
 Re-run: `make check-extensions`. Re-check against the managed TigerData instance once
 provisioned and update this table — differences are handled by the `tsvector` fallback,
 not by separate code paths (§15).
+
+## Day 1 status
+
+- [x] `make up && make migrate && make seed-tiny` runs clean from a fresh volume
+- [x] `GET /complaints` returns the seeded tiny dataset
+- [x] Web app at http://localhost:3000 lists them
+- [x] Extension check recorded above
+- [x] `backtrace` → `backtrace_eval` import rule enforced by `test_import_rules.py`
