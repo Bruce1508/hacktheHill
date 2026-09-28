@@ -36,6 +36,8 @@ services:
     working_dir: /app
     volumes:
       - ../apps/web:/app
+    # package.json's "dev" script ends in "#" to swallow pnpm 12's forwarded -- args below;
+    # do not remove that trailing "#" or this command will crash with a project-directory parse error.
     command: sh -c "corepack enable && pnpm install && pnpm dev -- --hostname 0.0.0.0"
     environment:
       NEXT_PUBLIC_API_URL: http://api:8000
