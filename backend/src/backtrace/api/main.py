@@ -1,7 +1,7 @@
 import os
 from typing import Annotated
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Query
 from sqlalchemy import select
 
 from backtrace.api.auth import CurrentUser, current_user
@@ -20,8 +20,8 @@ def health() -> dict[str, str]:
 @app.get("/complaints")
 def list_complaints(
     _user: Annotated[CurrentUser, Depends(current_user)],
-    limit: int = 100,
-    offset: int = 0,
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    offset: Annotated[int, Query(ge=0, le=10_000)] = 0,
 ) -> list[ComplaintOut]:
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     with get_session(database_url) as session:

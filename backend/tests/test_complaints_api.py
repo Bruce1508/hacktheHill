@@ -93,6 +93,29 @@ def test_demo_auth_fails_closed_for_unavailable_mode(client, monkeypatch, auth_m
     assert response.json() == {"detail": "Authentication service unavailable"}
 
 
+@pytest.mark.parametrize(
+    "query",
+    ("limit=0", "limit=101", "offset=-1", "offset=10001"),
+)
+def test_list_complaints_rejects_invalid_pagination(client, query):
+    response = client.get(
+        f"/complaints?{query}",
+        headers={"X-Demo-User": "demo-agent"},
+    )
+
+    assert response.status_code == 422
+
+
+def test_list_complaints_accepts_bounded_pagination(client):
+    response = client.get(
+        "/complaints?limit=1&offset=0",
+        headers={"X-Demo-User": "demo-agent"},
+    )
+
+    assert response.status_code == 200
+    assert len(response.json()) <= 1
+
+
 def test_health_remains_public(client):
     response = client.get("/health")
 
