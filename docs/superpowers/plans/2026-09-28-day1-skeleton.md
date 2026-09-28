@@ -144,6 +144,10 @@ POSTGRES_USER=backtrace_owner
 POSTGRES_PASSWORD=devpassword
 POSTGRES_PORT=5433
 
+# Fixes the Docker Compose project name regardless of the checkout directory
+# name (e.g. a git worktree path) — keeps volume/container names predictable.
+COMPOSE_PROJECT_NAME=backtrace
+
 # Host-side URLs (used by `make migrate`, `make seed-tiny`, tests — run outside Docker)
 DATABASE_URL_OWNER=postgresql+psycopg://backtrace_owner:devpassword@localhost:5433/backtrace
 DATABASE_URL_PIPELINE=postgresql+psycopg://bt_pipeline:devpassword@localhost:5433/backtrace
@@ -171,16 +175,16 @@ down:
 	docker compose -f infra/docker-compose.yml down
 
 migrate:
-	cd backend && DATABASE_URL=$(DATABASE_URL_OWNER) BT_PIPELINE_PASSWORD=$(POSTGRES_PASSWORD) BT_EVAL_PASSWORD=$(POSTGRES_PASSWORD) alembic upgrade head
+	cd backend && DATABASE_URL=$(DATABASE_URL_OWNER) BT_PIPELINE_PASSWORD=$(POSTGRES_PASSWORD) BT_EVAL_PASSWORD=$(POSTGRES_PASSWORD) .venv/bin/alembic upgrade head
 
 seed-tiny:
-	cd backend && PYTHONPATH=src python -m backtrace_eval.generator.load --fixture ../fixtures/tiny --database-url $(DATABASE_URL_EVAL)
+	cd backend && PYTHONPATH=src .venv/bin/python -m backtrace_eval.generator.load --fixture ../fixtures/tiny --database-url $(DATABASE_URL_EVAL)
 
 check-extensions:
-	cd backend && PYTHONPATH=src python -m backtrace.db.check_extensions --database-url $(DATABASE_URL_OWNER)
+	cd backend && PYTHONPATH=src .venv/bin/python -m backtrace.db.check_extensions --database-url $(DATABASE_URL_OWNER)
 
 test-backend:
-	cd backend && PYTHONPATH=src python -m pytest -q
+	cd backend && PYTHONPATH=src .venv/bin/python -m pytest -q
 ```
 
 - [ ] **Step 5: Write `README.md` stub**
@@ -1440,7 +1444,7 @@ git commit -m "feat(db): extension availability check, recorded in README"
 ```bash
 mkdir -p apps
 cd apps
-pnpm create next-app@latest web --typescript --tailwind --app --no-src-dir=false --import-alias "@/*" --eslint --use-pnpm
+pnpm create next-app@latest web --typescript --tailwind --app --src-dir --import-alias "@/*" --eslint --use-pnpm
 cd web
 pnpm dlx shadcn@latest init -d
 pnpm dlx shadcn@latest add table
@@ -1548,7 +1552,7 @@ git commit -m "feat(web): Next.js skeleton listing tiny complaints"
 
 ```bash
 make down
-docker volume rm hacktheHill_backtrace_db_data 2>/dev/null || true
+docker volume rm backtrace_backtrace_db_data 2>/dev/null || true
 make up
 ```
 
