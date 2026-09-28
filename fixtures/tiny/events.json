@@ -1,0 +1,32 @@
+[
+  {
+    "id": "event_000",
+    "source": "policy_change",
+    "start_at": "2026-01-04T21:00:00+00:00",
+    "end_at": "2026-01-05T08:00:00+00:00",
+    "scope": {
+      "region": "east"
+    },
+    "search_text": "policy_change affecting east"
+  },
+  {
+    "id": "event_001",
+    "source": "deploy",
+    "start_at": "2026-01-05T01:00:00+00:00",
+    "end_at": "2026-01-05T03:00:00+00:00",
+    "scope": {
+      "region": "west"
+    },
+    "search_text": "deploy affecting west"
+  },
+  {
+    "id": "event_002",
+    "source": "deploy",
+    "start_at": "2026-01-01T00:00:00+00:00",
+    "end_at": "2026-01-01T06:00:00+00:00",
+    "scope": {
+      "region": "south"
+    },
+    "search_text": "deploy affecting south"
+  }
+]

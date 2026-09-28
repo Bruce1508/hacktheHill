@@ -1,0 +1,1002 @@
+[
+  {
+    "complaint_id": "complaint_0000",
+    "customer_id": "cust_0020",
+    "received_at": "2026-01-12T14:35:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my business_ethernet service in south.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0001",
+    "customer_id": "cust_0014",
+    "received_at": "2026-01-02T22:57:00+00:00",
+    "channel": "phone",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "east",
+    "node_id": "node-east-5"
+  },
+  {
+    "complaint_id": "complaint_0002",
+    "customer_id": "cust_0047",
+    "received_at": "2026-01-10T17:09:00+00:00",
+    "channel": "email",
+    "text": "Something is wrong with my fiber_pro service in north.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-2"
+  },
+  {
+    "complaint_id": "complaint_0003",
+    "customer_id": "cust_0005",
+    "received_at": "2026-01-05T11:57:00+00:00",
+    "channel": "chat",
+    "text": "My fiber_pro has been having issues since 2026-01-05.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-5"
+  },
+  {
+    "complaint_id": "complaint_0004",
+    "customer_id": "cust_0026",
+    "received_at": "2026-01-11T07:42:00+00:00",
+    "channel": "chat",
+    "text": "My business_ethernet has been having issues since 2026-01-11.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-2"
+  },
+  {
+    "complaint_id": "complaint_0005",
+    "customer_id": "cust_0099",
+    "received_at": "2026-01-09T13:39:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "east",
+    "node_id": "node-east-3"
+  },
+  {
+    "complaint_id": "complaint_0006",
+    "customer_id": "cust_0020",
+    "received_at": "2026-01-13T05:56:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my business_ethernet service in south.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0007",
+    "customer_id": "cust_0022",
+    "received_at": "2026-01-12T10:50:00+00:00",
+    "channel": "email",
+    "text": "Something is wrong with my tv_bundle service in west.",
+    "product": "tv_bundle",
+    "region": "west",
+    "node_id": "node-west-3"
+  },
+  {
+    "complaint_id": "complaint_0008",
+    "customer_id": "cust_0034",
+    "received_at": "2026-01-03T22:06:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my fiber_basic service in west.",
+    "product": "fiber_basic",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0009",
+    "customer_id": "cust_0060",
+    "received_at": "2026-01-04T06:52:00+00:00",
+    "channel": "chat",
+    "text": "Something is wrong with my fiber_pro service in west.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0010",
+    "customer_id": "cust_0039",
+    "received_at": "2026-01-14T07:14:00+00:00",
+    "channel": "email",
+    "text": "My fiber_basic has been having issues since 2026-01-14.",
+    "product": "fiber_basic",
+    "region": "west",
+    "node_id": "node-west-3"
+  },
+  {
+    "complaint_id": "complaint_0011",
+    "customer_id": "cust_0051",
+    "received_at": "2026-01-06T08:55:00+00:00",
+    "channel": "chat",
+    "text": "My tv_bundle has been having issues since 2026-01-06.",
+    "product": "tv_bundle",
+    "region": "east",
+    "node_id": "node-east-5"
+  },
+  {
+    "complaint_id": "complaint_0012",
+    "customer_id": "cust_0044",
+    "received_at": "2026-01-11T16:25:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a business_ethernet issue.",
+    "product": "business_ethernet",
+    "region": "north",
+    "node_id": "node-north-3"
+  },
+  {
+    "complaint_id": "complaint_0013",
+    "customer_id": "cust_0014",
+    "received_at": "2026-01-05T05:37:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a business_ethernet issue.",
+    "product": "business_ethernet",
+    "region": "east",
+    "node_id": "node-east-5"
+  },
+  {
+    "complaint_id": "complaint_0014",
+    "customer_id": "cust_0013",
+    "received_at": "2026-01-10T13:22:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a tv_bundle issue.",
+    "product": "tv_bundle",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0015",
+    "customer_id": "cust_0077",
+    "received_at": "2026-01-09T03:24:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-2"
+  },
+  {
+    "complaint_id": "complaint_0016",
+    "customer_id": "cust_0005",
+    "received_at": "2026-01-12T13:00:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-5"
+  },
+  {
+    "complaint_id": "complaint_0017",
+    "customer_id": "cust_0055",
+    "received_at": "2026-01-02T21:58:00+00:00",
+    "channel": "chat",
+    "text": "This is my second time reporting a fiber_basic issue.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0018",
+    "customer_id": "cust_0084",
+    "received_at": "2026-01-14T03:46:00+00:00",
+    "channel": "chat",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-5"
+  },
+  {
+    "complaint_id": "complaint_0019",
+    "customer_id": "cust_0085",
+    "received_at": "2026-01-07T10:25:00+00:00",
+    "channel": "email",
+    "text": "This is my second time reporting a fiber_basic issue.",
+    "product": "fiber_basic",
+    "region": "north",
+    "node_id": "node-north-4"
+  },
+  {
+    "complaint_id": "complaint_0020",
+    "customer_id": "cust_0024",
+    "received_at": "2026-01-07T21:24:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my fiber_basic account.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-3"
+  },
+  {
+    "complaint_id": "complaint_0021",
+    "customer_id": "cust_0051",
+    "received_at": "2026-01-09T00:19:00+00:00",
+    "channel": "email",
+    "text": "This is my second time reporting a tv_bundle issue.",
+    "product": "tv_bundle",
+    "region": "east",
+    "node_id": "node-east-5"
+  },
+  {
+    "complaint_id": "complaint_0022",
+    "customer_id": "cust_0055",
+    "received_at": "2026-01-13T18:38:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a fiber_basic issue.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0023",
+    "customer_id": "cust_0056",
+    "received_at": "2026-01-08T21:13:00+00:00",
+    "channel": "email",
+    "text": "Something is wrong with my fiber_pro service in north.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0024",
+    "customer_id": "cust_0084",
+    "received_at": "2026-01-02T09:32:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-5"
+  },
+  {
+    "complaint_id": "complaint_0025",
+    "customer_id": "cust_0096",
+    "received_at": "2026-01-04T21:19:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0026",
+    "customer_id": "cust_0018",
+    "received_at": "2026-01-01T01:15:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my tv_bundle service in east.",
+    "product": "tv_bundle",
+    "region": "east",
+    "node_id": "node-east-3"
+  },
+  {
+    "complaint_id": "complaint_0027",
+    "customer_id": "cust_0058",
+    "received_at": "2026-01-07T20:36:00+00:00",
+    "channel": "web",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-4"
+  },
+  {
+    "complaint_id": "complaint_0028",
+    "customer_id": "cust_0063",
+    "received_at": "2026-01-07T07:09:00+00:00",
+    "channel": "phone",
+    "text": "My tv_bundle has been having issues since 2026-01-07.",
+    "product": "tv_bundle",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0029",
+    "customer_id": "cust_0099",
+    "received_at": "2026-01-07T07:11:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my fiber_pro service in east.",
+    "product": "fiber_pro",
+    "region": "east",
+    "node_id": "node-east-3"
+  },
+  {
+    "complaint_id": "complaint_0030",
+    "customer_id": "cust_0071",
+    "received_at": "2026-01-04T03:29:00+00:00",
+    "channel": "web",
+    "text": "I'm writing about a problem with my fiber_basic account.",
+    "product": "fiber_basic",
+    "region": "north",
+    "node_id": "node-north-2"
+  },
+  {
+    "complaint_id": "complaint_0031",
+    "customer_id": "cust_0085",
+    "received_at": "2026-01-09T17:38:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a fiber_basic issue.",
+    "product": "fiber_basic",
+    "region": "north",
+    "node_id": "node-north-4"
+  },
+  {
+    "complaint_id": "complaint_0032",
+    "customer_id": "cust_0078",
+    "received_at": "2026-01-14T23:57:00+00:00",
+    "channel": "web",
+    "text": "Something is wrong with my fiber_pro service in east.",
+    "product": "fiber_pro",
+    "region": "east",
+    "node_id": "node-east-1"
+  },
+  {
+    "complaint_id": "complaint_0033",
+    "customer_id": "cust_0020",
+    "received_at": "2026-01-12T15:28:00+00:00",
+    "channel": "email",
+    "text": "This is my second time reporting a business_ethernet issue.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0034",
+    "customer_id": "cust_0081",
+    "received_at": "2026-01-05T16:31:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my fiber_basic account.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-5"
+  },
+  {
+    "complaint_id": "complaint_0035",
+    "customer_id": "cust_0056",
+    "received_at": "2026-01-02T22:18:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0036",
+    "customer_id": "cust_0042",
+    "received_at": "2026-01-06T17:05:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my fiber_basic account.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-5"
+  },
+  {
+    "complaint_id": "complaint_0037",
+    "customer_id": "cust_0029",
+    "received_at": "2026-01-07T22:09:00+00:00",
+    "channel": "phone",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-5"
+  },
+  {
+    "complaint_id": "complaint_0038",
+    "customer_id": "cust_0053",
+    "received_at": "2026-01-07T10:34:00+00:00",
+    "channel": "web",
+    "text": "Something is wrong with my fiber_basic service in south.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-3"
+  },
+  {
+    "complaint_id": "complaint_0039",
+    "customer_id": "cust_0007",
+    "received_at": "2026-01-04T13:24:00+00:00",
+    "channel": "web",
+    "text": "My fiber_basic has been having issues since 2026-01-04.",
+    "product": "fiber_basic",
+    "region": "east",
+    "node_id": "node-east-2"
+  },
+  {
+    "complaint_id": "complaint_0040",
+    "customer_id": "cust_0061",
+    "received_at": "2026-01-01T11:19:00+00:00",
+    "channel": "web",
+    "text": "Something is wrong with my fiber_pro service in west.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-1"
+  },
+  {
+    "complaint_id": "complaint_0041",
+    "customer_id": "cust_0068",
+    "received_at": "2026-01-12T23:34:00+00:00",
+    "channel": "web",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-4"
+  },
+  {
+    "complaint_id": "complaint_0042",
+    "customer_id": "cust_0028",
+    "received_at": "2026-01-05T13:31:00+00:00",
+    "channel": "web",
+    "text": "My business_ethernet has been having issues since 2026-01-05.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-2"
+  },
+  {
+    "complaint_id": "complaint_0043",
+    "customer_id": "cust_0043",
+    "received_at": "2026-01-11T21:51:00+00:00",
+    "channel": "email",
+    "text": "Something is wrong with my tv_bundle service in east.",
+    "product": "tv_bundle",
+    "region": "east",
+    "node_id": "node-east-1"
+  },
+  {
+    "complaint_id": "complaint_0044",
+    "customer_id": "cust_0059",
+    "received_at": "2026-01-03T19:34:00+00:00",
+    "channel": "web",
+    "text": "My fiber_pro has been having issues since 2026-01-03.",
+    "product": "fiber_pro",
+    "region": "south",
+    "node_id": "node-south-5"
+  },
+  {
+    "complaint_id": "complaint_0045",
+    "customer_id": "cust_0075",
+    "received_at": "2026-01-10T21:01:00+00:00",
+    "channel": "web",
+    "text": "My tv_bundle has been having issues since 2026-01-10.",
+    "product": "tv_bundle",
+    "region": "north",
+    "node_id": "node-north-3"
+  },
+  {
+    "complaint_id": "complaint_0046",
+    "customer_id": "cust_0017",
+    "received_at": "2026-01-14T14:11:00+00:00",
+    "channel": "chat",
+    "text": "My fiber_basic has been having issues since 2026-01-14.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-4"
+  },
+  {
+    "complaint_id": "complaint_0047",
+    "customer_id": "cust_0048",
+    "received_at": "2026-01-06T06:29:00+00:00",
+    "channel": "chat",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-3"
+  },
+  {
+    "complaint_id": "complaint_0048",
+    "customer_id": "cust_0097",
+    "received_at": "2026-01-07T08:48:00+00:00",
+    "channel": "chat",
+    "text": "Something is wrong with my business_ethernet service in south.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0049",
+    "customer_id": "cust_0010",
+    "received_at": "2026-01-08T00:47:00+00:00",
+    "channel": "chat",
+    "text": "My fiber_basic has been having issues since 2026-01-08.",
+    "product": "fiber_basic",
+    "region": "north",
+    "node_id": "node-north-4"
+  },
+  {
+    "complaint_id": "complaint_0050",
+    "customer_id": "cust_0028",
+    "received_at": "2026-01-11T02:49:00+00:00",
+    "channel": "phone",
+    "text": "My business_ethernet has been having issues since 2026-01-11.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-2"
+  },
+  {
+    "complaint_id": "complaint_0051",
+    "customer_id": "cust_0031",
+    "received_at": "2026-01-04T00:39:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "south",
+    "node_id": "node-south-5"
+  },
+  {
+    "complaint_id": "complaint_0052",
+    "customer_id": "cust_0016",
+    "received_at": "2026-01-08T21:07:00+00:00",
+    "channel": "web",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0053",
+    "customer_id": "cust_0089",
+    "received_at": "2026-01-05T11:10:00+00:00",
+    "channel": "email",
+    "text": "My business_ethernet has been having issues since 2026-01-05.",
+    "product": "business_ethernet",
+    "region": "west",
+    "node_id": "node-west-1"
+  },
+  {
+    "complaint_id": "complaint_0054",
+    "customer_id": "cust_0039",
+    "received_at": "2026-01-02T18:01:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a fiber_basic issue.",
+    "product": "fiber_basic",
+    "region": "west",
+    "node_id": "node-west-3"
+  },
+  {
+    "complaint_id": "complaint_0055",
+    "customer_id": "cust_0050",
+    "received_at": "2026-01-12T06:04:00+00:00",
+    "channel": "phone",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-4"
+  },
+  {
+    "complaint_id": "complaint_0056",
+    "customer_id": "cust_0089",
+    "received_at": "2026-01-13T09:54:00+00:00",
+    "channel": "phone",
+    "text": "My business_ethernet has been having issues since 2026-01-13.",
+    "product": "business_ethernet",
+    "region": "west",
+    "node_id": "node-west-1"
+  },
+  {
+    "complaint_id": "complaint_0057",
+    "customer_id": "cust_0044",
+    "received_at": "2026-01-09T13:42:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a business_ethernet issue.",
+    "product": "business_ethernet",
+    "region": "north",
+    "node_id": "node-north-3"
+  },
+  {
+    "complaint_id": "complaint_0058",
+    "customer_id": "cust_0064",
+    "received_at": "2026-01-11T10:00:00+00:00",
+    "channel": "web",
+    "text": "Something is wrong with my fiber_basic service in north.",
+    "product": "fiber_basic",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0059",
+    "customer_id": "cust_0013",
+    "received_at": "2026-01-07T11:40:00+00:00",
+    "channel": "email",
+    "text": "Something is wrong with my tv_bundle service in north.",
+    "product": "tv_bundle",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0060",
+    "customer_id": "cust_0055",
+    "received_at": "2026-01-03T23:33:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a fiber_basic issue.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0061",
+    "customer_id": "cust_0059",
+    "received_at": "2026-01-07T23:37:00+00:00",
+    "channel": "chat",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "south",
+    "node_id": "node-south-5"
+  },
+  {
+    "complaint_id": "complaint_0062",
+    "customer_id": "cust_0031",
+    "received_at": "2026-01-14T02:17:00+00:00",
+    "channel": "email",
+    "text": "Something is wrong with my fiber_pro service in south.",
+    "product": "fiber_pro",
+    "region": "south",
+    "node_id": "node-south-5"
+  },
+  {
+    "complaint_id": "complaint_0063",
+    "customer_id": "cust_0096",
+    "received_at": "2026-01-08T18:39:00+00:00",
+    "channel": "chat",
+    "text": "Something is wrong with my business_ethernet service in north.",
+    "product": "business_ethernet",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0064",
+    "customer_id": "cust_0003",
+    "received_at": "2026-01-08T10:11:00+00:00",
+    "channel": "email",
+    "text": "Something is wrong with my fiber_basic service in west.",
+    "product": "fiber_basic",
+    "region": "west",
+    "node_id": "node-west-1"
+  },
+  {
+    "complaint_id": "complaint_0065",
+    "customer_id": "cust_0045",
+    "received_at": "2026-01-13T08:21:00+00:00",
+    "channel": "chat",
+    "text": "This is my second time reporting a fiber_basic issue.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-2"
+  },
+  {
+    "complaint_id": "complaint_0066",
+    "customer_id": "cust_0071",
+    "received_at": "2026-01-01T16:12:00+00:00",
+    "channel": "email",
+    "text": "My fiber_basic has been having issues since 2026-01-01.",
+    "product": "fiber_basic",
+    "region": "north",
+    "node_id": "node-north-2"
+  },
+  {
+    "complaint_id": "complaint_0067",
+    "customer_id": "cust_0092",
+    "received_at": "2026-01-07T15:35:00+00:00",
+    "channel": "web",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-2"
+  },
+  {
+    "complaint_id": "complaint_0068",
+    "customer_id": "cust_0082",
+    "received_at": "2026-01-12T15:28:00+00:00",
+    "channel": "phone",
+    "text": "My fiber_pro has been having issues since 2026-01-12.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0069",
+    "customer_id": "cust_0037",
+    "received_at": "2026-01-04T12:44:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "east",
+    "node_id": "node-east-1"
+  },
+  {
+    "complaint_id": "complaint_0070",
+    "customer_id": "cust_0084",
+    "received_at": "2026-01-10T11:30:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-5"
+  },
+  {
+    "complaint_id": "complaint_0071",
+    "customer_id": "cust_0095",
+    "received_at": "2026-01-09T10:22:00+00:00",
+    "channel": "chat",
+    "text": "Something is wrong with my business_ethernet service in west.",
+    "product": "business_ethernet",
+    "region": "west",
+    "node_id": "node-west-5"
+  },
+  {
+    "complaint_id": "complaint_0072",
+    "customer_id": "cust_0039",
+    "received_at": "2026-01-05T07:07:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my fiber_basic account.",
+    "product": "fiber_basic",
+    "region": "west",
+    "node_id": "node-west-3"
+  },
+  {
+    "complaint_id": "complaint_0073",
+    "customer_id": "cust_0015",
+    "received_at": "2026-01-12T17:48:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my fiber_basic account.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0074",
+    "customer_id": "cust_0027",
+    "received_at": "2026-01-12T15:17:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a tv_bundle issue.",
+    "product": "tv_bundle",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0075",
+    "customer_id": "cust_0024",
+    "received_at": "2026-01-05T07:23:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my fiber_basic account.",
+    "product": "fiber_basic",
+    "region": "south",
+    "node_id": "node-south-3"
+  },
+  {
+    "complaint_id": "complaint_0076",
+    "customer_id": "cust_0001",
+    "received_at": "2026-01-12T17:08:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "south",
+    "node_id": "node-south-2"
+  },
+  {
+    "complaint_id": "complaint_0077",
+    "customer_id": "cust_0006",
+    "received_at": "2026-01-09T09:44:00+00:00",
+    "channel": "web",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0078",
+    "customer_id": "cust_0013",
+    "received_at": "2026-01-14T00:36:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a tv_bundle issue.",
+    "product": "tv_bundle",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0079",
+    "customer_id": "cust_0061",
+    "received_at": "2026-01-08T10:11:00+00:00",
+    "channel": "chat",
+    "text": "My fiber_pro has been having issues since 2026-01-08.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-1"
+  },
+  {
+    "complaint_id": "complaint_0080",
+    "customer_id": "cust_0061",
+    "received_at": "2026-01-02T02:25:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my fiber_pro service in west.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-1"
+  },
+  {
+    "complaint_id": "complaint_0081",
+    "customer_id": "cust_0073",
+    "received_at": "2026-01-11T21:03:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0082",
+    "customer_id": "cust_0072",
+    "received_at": "2026-01-05T02:15:00+00:00",
+    "channel": "web",
+    "text": "My tv_bundle has been having issues since 2026-01-05.",
+    "product": "tv_bundle",
+    "region": "south",
+    "node_id": "node-south-4"
+  },
+  {
+    "complaint_id": "complaint_0083",
+    "customer_id": "cust_0077",
+    "received_at": "2026-01-10T19:14:00+00:00",
+    "channel": "web",
+    "text": "Something is wrong with my fiber_pro service in west.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-2"
+  },
+  {
+    "complaint_id": "complaint_0084",
+    "customer_id": "cust_0056",
+    "received_at": "2026-01-05T18:27:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0085",
+    "customer_id": "cust_0078",
+    "received_at": "2026-01-12T03:48:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "east",
+    "node_id": "node-east-1"
+  },
+  {
+    "complaint_id": "complaint_0086",
+    "customer_id": "cust_0033",
+    "received_at": "2026-01-11T02:10:00+00:00",
+    "channel": "email",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-2"
+  },
+  {
+    "complaint_id": "complaint_0087",
+    "customer_id": "cust_0070",
+    "received_at": "2026-01-02T05:00:00+00:00",
+    "channel": "web",
+    "text": "Something is wrong with my fiber_basic service in north.",
+    "product": "fiber_basic",
+    "region": "north",
+    "node_id": "node-north-5"
+  },
+  {
+    "complaint_id": "complaint_0088",
+    "customer_id": "cust_0088",
+    "received_at": "2026-01-10T15:18:00+00:00",
+    "channel": "email",
+    "text": "My fiber_pro has been having issues since 2026-01-10.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-3"
+  },
+  {
+    "complaint_id": "complaint_0089",
+    "customer_id": "cust_0036",
+    "received_at": "2026-01-12T09:44:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my fiber_basic service in east.",
+    "product": "fiber_basic",
+    "region": "east",
+    "node_id": "node-east-1"
+  },
+  {
+    "complaint_id": "complaint_0090",
+    "customer_id": "cust_0087",
+    "received_at": "2026-01-04T08:50:00+00:00",
+    "channel": "web",
+    "text": "I'm writing about a problem with my fiber_pro account.",
+    "product": "fiber_pro",
+    "region": "east",
+    "node_id": "node-east-3"
+  },
+  {
+    "complaint_id": "complaint_0091",
+    "customer_id": "cust_0014",
+    "received_at": "2026-01-09T07:41:00+00:00",
+    "channel": "chat",
+    "text": "I'm writing about a problem with my business_ethernet account.",
+    "product": "business_ethernet",
+    "region": "east",
+    "node_id": "node-east-5"
+  },
+  {
+    "complaint_id": "complaint_0092",
+    "customer_id": "cust_0018",
+    "received_at": "2026-01-02T01:10:00+00:00",
+    "channel": "chat",
+    "text": "This is my second time reporting a tv_bundle issue.",
+    "product": "tv_bundle",
+    "region": "east",
+    "node_id": "node-east-3"
+  },
+  {
+    "complaint_id": "complaint_0093",
+    "customer_id": "cust_0056",
+    "received_at": "2026-01-02T14:44:00+00:00",
+    "channel": "web",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "north",
+    "node_id": "node-north-1"
+  },
+  {
+    "complaint_id": "complaint_0094",
+    "customer_id": "cust_0034",
+    "received_at": "2026-01-09T17:31:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my fiber_basic service in west.",
+    "product": "fiber_basic",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0095",
+    "customer_id": "cust_0076",
+    "received_at": "2026-01-01T13:47:00+00:00",
+    "channel": "chat",
+    "text": "This is my second time reporting a business_ethernet issue.",
+    "product": "business_ethernet",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0096",
+    "customer_id": "cust_0003",
+    "received_at": "2026-01-02T07:43:00+00:00",
+    "channel": "chat",
+    "text": "My fiber_basic has been having issues since 2026-01-02.",
+    "product": "fiber_basic",
+    "region": "west",
+    "node_id": "node-west-1"
+  },
+  {
+    "complaint_id": "complaint_0097",
+    "customer_id": "cust_0073",
+    "received_at": "2026-01-01T05:30:00+00:00",
+    "channel": "chat",
+    "text": "Something is wrong with my fiber_pro service in west.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-4"
+  },
+  {
+    "complaint_id": "complaint_0098",
+    "customer_id": "cust_0023",
+    "received_at": "2026-01-10T13:40:00+00:00",
+    "channel": "phone",
+    "text": "Something is wrong with my business_ethernet service in south.",
+    "product": "business_ethernet",
+    "region": "south",
+    "node_id": "node-south-1"
+  },
+  {
+    "complaint_id": "complaint_0099",
+    "customer_id": "cust_0060",
+    "received_at": "2026-01-06T13:21:00+00:00",
+    "channel": "phone",
+    "text": "This is my second time reporting a fiber_pro issue.",
+    "product": "fiber_pro",
+    "region": "west",
+    "node_id": "node-west-4"
+  }
+]

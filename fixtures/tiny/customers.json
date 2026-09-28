@@ -1,0 +1,702 @@
+[
+  {
+    "id": "cust_0000",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-3"
+  },
+  {
+    "id": "cust_0001",
+    "region": "south",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-south-2"
+  },
+  {
+    "id": "cust_0002",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0003",
+    "region": "west",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-west-1"
+  },
+  {
+    "id": "cust_0004",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-2"
+  },
+  {
+    "id": "cust_0005",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0006",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0007",
+    "region": "east",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-east-2"
+  },
+  {
+    "id": "cust_0008",
+    "region": "west",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-west-3"
+  },
+  {
+    "id": "cust_0009",
+    "region": "south",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-south-3"
+  },
+  {
+    "id": "cust_0010",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-4"
+  },
+  {
+    "id": "cust_0011",
+    "region": "north",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-north-3"
+  },
+  {
+    "id": "cust_0012",
+    "region": "east",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-east-4"
+  },
+  {
+    "id": "cust_0013",
+    "region": "north",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-north-1"
+  },
+  {
+    "id": "cust_0014",
+    "region": "east",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-east-5"
+  },
+  {
+    "id": "cust_0015",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-1"
+  },
+  {
+    "id": "cust_0016",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-1"
+  },
+  {
+    "id": "cust_0017",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-4"
+  },
+  {
+    "id": "cust_0018",
+    "region": "east",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-east-3"
+  },
+  {
+    "id": "cust_0019",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-3"
+  },
+  {
+    "id": "cust_0020",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-1"
+  },
+  {
+    "id": "cust_0021",
+    "region": "south",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-south-2"
+  },
+  {
+    "id": "cust_0022",
+    "region": "west",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-west-3"
+  },
+  {
+    "id": "cust_0023",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-1"
+  },
+  {
+    "id": "cust_0024",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-3"
+  },
+  {
+    "id": "cust_0025",
+    "region": "west",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-west-1"
+  },
+  {
+    "id": "cust_0026",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-2"
+  },
+  {
+    "id": "cust_0027",
+    "region": "west",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0028",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-2"
+  },
+  {
+    "id": "cust_0029",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-5"
+  },
+  {
+    "id": "cust_0030",
+    "region": "west",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-west-3"
+  },
+  {
+    "id": "cust_0031",
+    "region": "south",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-south-5"
+  },
+  {
+    "id": "cust_0032",
+    "region": "west",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-west-1"
+  },
+  {
+    "id": "cust_0033",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-2"
+  },
+  {
+    "id": "cust_0034",
+    "region": "west",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0035",
+    "region": "west",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-west-5"
+  },
+  {
+    "id": "cust_0036",
+    "region": "east",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-east-1"
+  },
+  {
+    "id": "cust_0037",
+    "region": "east",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-east-1"
+  },
+  {
+    "id": "cust_0038",
+    "region": "east",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-east-2"
+  },
+  {
+    "id": "cust_0039",
+    "region": "west",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-west-3"
+  },
+  {
+    "id": "cust_0040",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-3"
+  },
+  {
+    "id": "cust_0041",
+    "region": "south",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-south-3"
+  },
+  {
+    "id": "cust_0042",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-5"
+  },
+  {
+    "id": "cust_0043",
+    "region": "east",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-east-1"
+  },
+  {
+    "id": "cust_0044",
+    "region": "north",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-north-3"
+  },
+  {
+    "id": "cust_0045",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-2"
+  },
+  {
+    "id": "cust_0046",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-4"
+  },
+  {
+    "id": "cust_0047",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-2"
+  },
+  {
+    "id": "cust_0048",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-3"
+  },
+  {
+    "id": "cust_0049",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-5"
+  },
+  {
+    "id": "cust_0050",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-4"
+  },
+  {
+    "id": "cust_0051",
+    "region": "east",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-east-5"
+  },
+  {
+    "id": "cust_0052",
+    "region": "west",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-west-2"
+  },
+  {
+    "id": "cust_0053",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-3"
+  },
+  {
+    "id": "cust_0054",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0055",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-1"
+  },
+  {
+    "id": "cust_0056",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-1"
+  },
+  {
+    "id": "cust_0057",
+    "region": "north",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-north-1"
+  },
+  {
+    "id": "cust_0058",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-4"
+  },
+  {
+    "id": "cust_0059",
+    "region": "south",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-south-5"
+  },
+  {
+    "id": "cust_0060",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0061",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-1"
+  },
+  {
+    "id": "cust_0062",
+    "region": "north",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-north-3"
+  },
+  {
+    "id": "cust_0063",
+    "region": "west",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0064",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-1"
+  },
+  {
+    "id": "cust_0065",
+    "region": "west",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-west-1"
+  },
+  {
+    "id": "cust_0066",
+    "region": "south",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-south-2"
+  },
+  {
+    "id": "cust_0067",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0068",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-4"
+  },
+  {
+    "id": "cust_0069",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-4"
+  },
+  {
+    "id": "cust_0070",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0071",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-2"
+  },
+  {
+    "id": "cust_0072",
+    "region": "south",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-south-4"
+  },
+  {
+    "id": "cust_0073",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0074",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-4"
+  },
+  {
+    "id": "cust_0075",
+    "region": "north",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-north-3"
+  },
+  {
+    "id": "cust_0076",
+    "region": "west",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-west-4"
+  },
+  {
+    "id": "cust_0077",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-2"
+  },
+  {
+    "id": "cust_0078",
+    "region": "east",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-east-1"
+  },
+  {
+    "id": "cust_0079",
+    "region": "north",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-north-1"
+  },
+  {
+    "id": "cust_0080",
+    "region": "north",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0081",
+    "region": "south",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-south-5"
+  },
+  {
+    "id": "cust_0082",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-1"
+  },
+  {
+    "id": "cust_0083",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-4"
+  },
+  {
+    "id": "cust_0084",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0085",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-4"
+  },
+  {
+    "id": "cust_0086",
+    "region": "east",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-east-2"
+  },
+  {
+    "id": "cust_0087",
+    "region": "east",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-east-3"
+  },
+  {
+    "id": "cust_0088",
+    "region": "west",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-west-3"
+  },
+  {
+    "id": "cust_0089",
+    "region": "west",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-west-1"
+  },
+  {
+    "id": "cust_0090",
+    "region": "north",
+    "plan": "tv_bundle",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0091",
+    "region": "north",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-north-5"
+  },
+  {
+    "id": "cust_0092",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-2"
+  },
+  {
+    "id": "cust_0093",
+    "region": "east",
+    "plan": "fiber_basic",
+    "segment": "residential",
+    "node_id": "node-east-2"
+  },
+  {
+    "id": "cust_0094",
+    "region": "east",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-east-2"
+  },
+  {
+    "id": "cust_0095",
+    "region": "west",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-west-5"
+  },
+  {
+    "id": "cust_0096",
+    "region": "north",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-north-1"
+  },
+  {
+    "id": "cust_0097",
+    "region": "south",
+    "plan": "business_ethernet",
+    "segment": "business",
+    "node_id": "node-south-1"
+  },
+  {
+    "id": "cust_0098",
+    "region": "north",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-north-3"
+  },
+  {
+    "id": "cust_0099",
+    "region": "east",
+    "plan": "fiber_pro",
+    "segment": "residential",
+    "node_id": "node-east-3"
+  }
+]
