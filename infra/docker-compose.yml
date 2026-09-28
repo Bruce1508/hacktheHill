@@ -8,7 +8,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
-      - backtrace_db_data:/var/lib/postgresql/data
+      - backtrace_db_data:/home/postgres/pgdata/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -40,7 +40,7 @@ services:
     # do not remove that trailing "#" or this command will crash with a project-directory parse error.
     command: sh -c "corepack enable && pnpm install && pnpm dev -- --hostname 0.0.0.0"
     environment:
-      NEXT_PUBLIC_API_URL: http://api:8000
+      API_URL: http://api:8000
     ports:
       - "3000:3000"
     depends_on:

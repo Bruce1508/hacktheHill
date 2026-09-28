@@ -5,7 +5,10 @@ for the full design; this README tracks what actually runs.
 
 ## Quickstart
 
+Requires Python >=3.12 (built and tested against 3.13; 3.12 works too).
+
 ```bash
+cd backend && python3.12 -m venv .venv && .venv/bin/pip install -e ".[dev]" && cd ..
 cp .env.example .env
 make up
 make migrate

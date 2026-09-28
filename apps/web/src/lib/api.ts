@@ -8,7 +8,7 @@ export type Complaint = {
   region: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_URL = process.env.API_URL ?? "http://localhost:8000";
 
 export async function fetchComplaints(): Promise<Complaint[]> {
   const res = await fetch(`${API_URL}/complaints`, {

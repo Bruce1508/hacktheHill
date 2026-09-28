@@ -26,6 +26,9 @@ def list_complaints(
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     with get_session(database_url) as session:
         rows = session.execute(
-            select(Complaint).order_by(Complaint.received_at).limit(limit).offset(offset)
+            select(Complaint)
+            .order_by(Complaint.received_at, Complaint.complaint_id)
+            .limit(limit)
+            .offset(offset)
         ).scalars().all()
         return [ComplaintOut.model_validate(row) for row in rows]
