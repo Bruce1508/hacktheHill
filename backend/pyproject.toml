@@ -12,6 +12,7 @@ dependencies = [
     "pyyaml>=6.0",
     "google-genai>=2.25",
     "pgvector>=0.5",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]

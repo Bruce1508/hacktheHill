@@ -159,6 +159,17 @@ class ComplaintEmbedding(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(768))
 
 
+class ComplaintLayout(Base):
+    __tablename__ = "complaint_layout"
+    __table_args__ = {"schema": "app"}
+
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"), primary_key=True)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"), primary_key=True)
+    x: Mapped[float]
+    y: Mapped[float]
+    layout_version: Mapped[str]
+
+
 class Job(Base):
     __tablename__ = "jobs"
     __table_args__ = {"schema": "app"}

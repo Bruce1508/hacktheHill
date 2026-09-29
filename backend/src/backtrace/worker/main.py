@@ -14,6 +14,7 @@ from backtrace.db.models import Job, WorkerHeartbeat
 from backtrace.db.session import make_session_factory
 from backtrace.llm.config import PipelineConfig
 from backtrace.llm.providers import FakeEmbeddingProvider, FakeExtractionProvider, GeminiEmbeddingProvider, GeminiExtractionProvider
+from backtrace.pipeline.layout import run_layout_stage
 from backtrace.pipeline.stages import run_embedding_stage, run_extraction_stage
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -40,7 +41,7 @@ def _heartbeat(session_factory) -> None:
 
 
 def _run_job(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, job: Job) -> None:
-    stages = ("extraction", "embedding") if job.type == "pipeline.run" else (job.stage,)
+    stages = ("extraction", "embedding", "layout") if job.type == "pipeline.run" else (job.stage,)
     for stage in stages:
         if stage == "extraction":
             result = run_extraction_stage(
@@ -50,6 +51,8 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
             result = run_embedding_stage(
                 session_factory, job.run_id, embedding_provider, config.max_concurrent_calls, cache_only=config.cache_only
             )
+        elif stage == "layout":
+            result = run_layout_stage(session_factory, job.run_id)
         else:
             raise ValueError(f"unknown stage {stage!r}")
         logger.info("job=%s run=%s stage=%s result=%s", job.id, job.run_id, stage, result)

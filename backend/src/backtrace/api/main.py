@@ -8,7 +8,8 @@ from sqlalchemy import select
 from backtrace.api.auth import CurrentUser, current_user
 from backtrace.contracts.complaints import ComplaintOut
 from backtrace.contracts.jobs import JobOut, RunOut
-from backtrace.db.models import Complaint, Job, PipelineRun, WorkerHeartbeat
+from backtrace.contracts.viz import VizComplaintsOut, VizPoint
+from backtrace.db.models import Complaint, ComplaintFeatures, ComplaintLayout, Job, PipelineRun, WorkerHeartbeat
 from backtrace.db.session import get_session
 
 app = FastAPI(title="Backtrace API")
@@ -16,6 +17,10 @@ app = FastAPI(title="Backtrace API")
 # Worker heartbeats every 10s (backtrace.worker.main); allow two missed beats
 # before calling it dead.
 WORKER_HEARTBEAT_STALE_SECONDS = 30
+
+# Safety guard on /viz/complaints, not a pagination mechanism (§6.5) — the
+# route always returns the whole run's point set.
+VIZ_POINTS_MAX = 20_000
 
 
 @app.get("/health")
@@ -70,3 +75,35 @@ def list_complaints(
             .offset(offset)
         ).scalars().all()
         return [ComplaintOut.model_validate(row) for row in rows]
+
+
+@app.get("/viz/complaints")
+def viz_complaints(
+    _user: Annotated[CurrentUser, Depends(current_user)],
+    run_id: str | None = None,
+) -> VizComplaintsOut:
+    """Whole-run point set for the deck.gl scatter (§6.5) — never paginated
+    through /complaints, which is capped at 100 rows for a different use."""
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    with get_session(database_url) as session:
+        run = (
+            session.get(PipelineRun, run_id)
+            if run_id
+            else session.execute(select(PipelineRun).order_by(PipelineRun.started_at.desc()).limit(1)).scalar_one_or_none()
+        )
+        if run is None:
+            raise HTTPException(status_code=404, detail="no runs yet")
+
+        rows = session.execute(
+            select(ComplaintLayout.complaint_id, ComplaintLayout.x, ComplaintLayout.y, ComplaintFeatures.extraction)
+            .join(
+                ComplaintFeatures,
+                (ComplaintFeatures.run_id == ComplaintLayout.run_id) & (ComplaintFeatures.complaint_id == ComplaintLayout.complaint_id),
+            )
+            .where(ComplaintLayout.run_id == run.run_id)
+            .limit(VIZ_POINTS_MAX)
+        ).all()
+        points = [
+            VizPoint(complaint_id=cid, x=x, y=y, claimed_cause=extraction.get("claimed_cause")) for cid, x, y, extraction in rows
+        ]
+        return VizComplaintsOut(run_id=run.run_id, dataset_profile=run.dataset_profile, synthetic=True, points=points)
