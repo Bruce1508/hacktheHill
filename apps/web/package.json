@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@deck.gl/core": "9.4.0",
+    "@deck.gl/layers": "9.4.0",
+    "@deck.gl/react": "9.4.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
     "lucide-react": "^1.48.0",
