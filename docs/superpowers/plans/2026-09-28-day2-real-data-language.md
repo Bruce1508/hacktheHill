@@ -1,6 +1,6 @@
 # Day 2 — Real data + language implementation plan
 
-**Status:** proposed plan, not yet implemented. Prepared against `worktree-day1-skeleton` at `4e3946d` on 2026-09-28. Recheck the branch and the Day 1 whole-branch review before executing.
+**Status:** Phase 1 (dev-world generator) implemented and tested on `day2-real-data-language`, based on `main` at `4e3946d`. Phases 2–6 not started; Phase 3/6 need a Gemini API key (pending).
 
 **Goal:** meet the Day 2 row of `Backtrace — Technical Design Doc.md` §19: generate and load the `dev` synthetic world; extract structured fields and embeddings with Gemini and a persistent cache; run the stages through one Postgres-backed worker; show the `dev` complaints in a basic deck.gl scatter. A repeated run over the same input must make zero Gemini calls.
 
@@ -24,7 +24,7 @@ Allowed API examples to copy and adapt, after pinning dependency versions: `gena
 
 Lock these decisions before creating the vector migration or making paid calls:
 
-1. Resolve the Day 1 whole-branch review, then begin from its accepted commit. `main`/`origin/main` are still at `9c729bf` as of this plan; the completed Day 1 work is in `worktree-day1-skeleton`.
+1. Day 1 is merged; `main`/`origin/main` are at `4e3946d`. `day2-real-data-language` branches from there.
 2. Confirm available Gemini model IDs and account quota in AI Studio / `models.list`; pin **separate** text-generation and extraction model IDs, the embedding model, output dimension, prompt versions, and a maximum dev-run call/spend budget in `configs/pipeline.yaml`. This addresses design §6.3 and open question §20. A 20-complaint smoke run precedes the full `dev` run. Keep API keys only in `.env`.
 3. Record a `dev` seed and event config separate from any future held-out seed/config. Define what is committed (world config and tests) and what stays local/ignored (large generated data, generated text cache, and held-out material). Never commit a held-out configuration before freeze (§5.8).
 4. For Day 2 only, derive deterministic provisional `(x, y)` positions from embeddings (for example, PCA with fixed preprocessing/seed). Save `layout_version`. `cohort_id` and `symptom_cluster_id` are nullable until Day 3; the UI must call this a symptom/embedding view, not a root-cause result.

@@ -32,6 +32,7 @@ class CauseConfig:
     kind: str
     region: str
     source: str
+    observable: bool = True
 
 
 @dataclass(frozen=True)
@@ -231,10 +232,12 @@ def generate_dev_world(config: DevWorldConfig, text_provider: TextProvider | Non
         }
         world.gold_events.append(gold)
         causes.append((spec, gold, set(affected)))
-        # Missing evidence is deliberate; observable IDs carry no answer-key relationship.
-        if index not in (3, 6):
+        # Missing evidence is config-driven (CauseConfig.observable); trace IDs are
+        # salted hashes so they carry no positional or answer-key relationship to the cause.
+        if spec.observable:
+            trace_suffix = hashlib.sha256(f"{config.seed}:{cause_id}".encode()).hexdigest()[:10]
             world.events.append({
-                "id": f"dev-trace-{index:02d}", "source": spec.source,
+                "id": f"dev-trace-{trace_suffix}", "source": spec.source,
                 "start_at": _timestamp(begins + dt.timedelta(minutes=rng.randint(0, 25))),
                 "end_at": _timestamp(ends), "scope": {"region": spec.region},
                 "search_text": f"{spec.source.replace('_', ' ')} record in {spec.region}",
@@ -373,6 +376,10 @@ def generate_dev_world(config: DevWorldConfig, text_provider: TextProvider | Non
         used_customer_ids.add(customer["id"])
         if cause_index is not None:
             previous_by_cause.setdefault(cause_index, []).append(customer["id"])
+    # Not dataclass fields (would corrupt the row-count manifest below); records which
+    # provider actually produced this world's text, so write_dev_world can't diverge from it.
+    world.generation_model = provider.model_id
+    world.prompt_version = provider.prompt_version
     return world
 
 
@@ -380,9 +387,8 @@ def _json_bytes(data: object) -> bytes:
     return (json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")
 
 
-def write_dev_world(world: DevWorld, config: DevWorldConfig, out_dir: Path, text_provider: TextProvider | None = None) -> dict:
+def write_dev_world(world: DevWorld, config: DevWorldConfig, out_dir: Path) -> dict:
     """Write app observables and eval answers to disjoint paths with hashes."""
-    provider = text_provider or FakeTextProvider()
     files = {
         "app/customers.json": world.customers,
         "app/network_nodes.json": world.network_nodes,
@@ -403,7 +409,7 @@ def write_dev_world(world: DevWorld, config: DevWorldConfig, out_dir: Path, text
     config_hash = hashlib.sha256(_json_bytes(asdict(config))).hexdigest()
     manifest = {
         "profile": config.profile, "seed": config.seed, "config_sha256": config_hash,
-        "generation_model": provider.model_id, "prompt_version": provider.prompt_version,
+        "generation_model": world.generation_model, "prompt_version": world.prompt_version,
         "counts": {name: len(getattr(world, name)) for name in world.__dataclass_fields__},
         "output_sha256": hashes,
     }

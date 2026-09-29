@@ -21,8 +21,8 @@ causes:
   - {kind: fiber_cut, region: north, source: network_alarm}
   - {kind: optical_degradation, region: north, source: network_alarm}
   - {kind: maintenance_overrun, region: east, source: deploy}
-  - {kind: dns_failure, region: south, source: network_alarm}
+  - {kind: dns_failure, region: south, source: network_alarm, observable: false}
   - {kind: billing_double_charge, region: west, source: billing_run}
   - {kind: unnotified_price_increase, region: northeast, source: policy_change}
-  - {kind: technician_no_show, region: southeast, source: dispatch_log}
+  - {kind: technician_no_show, region: southeast, source: dispatch_log, observable: false}
   - {kind: cancellation_fee, region: southwest, source: billing_run}
