@@ -1,6 +1,6 @@
 # Day 2 — Real data + language implementation plan
 
-**Status:** Phase 1 (dev-world generator) implemented and tested on `day2-real-data-language`, based on `main` at `4e3946d`. Phases 2–6 not started; Phase 3/6 need a Gemini API key (pending).
+**Status:** Phases 1–2 implemented and verified against a live Postgres/Timescale container on `day2-real-data-language`, based on `main` at `4e3946d`. Phase 2 pinned `complaint_embeddings.embedding` to `vector(768)` as a placeholder — confirm the real Gemini output_dimensionality before Phase 3 and adjust with a follow-up migration if it differs. Phases 3–6 not started; Phase 3/6 need a Gemini API key (pending).
 
 **Goal:** meet the Day 2 row of `Backtrace — Technical Design Doc.md` §19: generate and load the `dev` synthetic world; extract structured fields and embeddings with Gemini and a persistent cache; run the stages through one Postgres-backed worker; show the `dev` complaints in a basic deck.gl scatter. A repeated run over the same input must make zero Gemini calls.
 
