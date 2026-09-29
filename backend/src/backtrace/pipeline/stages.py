@@ -40,9 +40,16 @@ def _extract_one(session_factory: sessionmaker, run_id: str, complaint_id: str, 
 
 
 def run_extraction_stage(
-    session_factory: sessionmaker, run_id: str, provider: ExtractionProvider, max_concurrent_calls: int, cache_only: bool = False
+    session_factory: sessionmaker,
+    run_id: str,
+    provider: ExtractionProvider,
+    max_concurrent_calls: int,
+    max_calls_per_run: int,
+    cache_only: bool = False,
 ) -> dict:
     pending = _pending_extraction_ids(session_factory, run_id)
+    if len(pending) > max_calls_per_run:
+        raise RuntimeError(f"extraction stage would make {len(pending)} calls, exceeding max_calls_per_run={max_calls_per_run}")
     with ThreadPoolExecutor(max_workers=max(1, max_concurrent_calls)) as pool:
         futures = [pool.submit(_extract_one, session_factory, run_id, cid, provider, cache_only) for cid in pending]
         for future in as_completed(futures):
@@ -77,9 +84,16 @@ def _embed_one(session_factory: sessionmaker, run_id: str, complaint_id: str, pr
 
 
 def run_embedding_stage(
-    session_factory: sessionmaker, run_id: str, provider: EmbeddingProvider, max_concurrent_calls: int, cache_only: bool = False
+    session_factory: sessionmaker,
+    run_id: str,
+    provider: EmbeddingProvider,
+    max_concurrent_calls: int,
+    max_calls_per_run: int,
+    cache_only: bool = False,
 ) -> dict:
     pending = _pending_embedding_ids(session_factory, run_id)
+    if len(pending) > max_calls_per_run:
+        raise RuntimeError(f"embedding stage would make {len(pending)} calls, exceeding max_calls_per_run={max_calls_per_run}")
     with ThreadPoolExecutor(max_workers=max(1, max_concurrent_calls)) as pool:
         futures = [pool.submit(_embed_one, session_factory, run_id, cid, provider, cache_only) for cid in pending]
         for future in as_completed(futures):

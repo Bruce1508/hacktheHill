@@ -45,11 +45,21 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
     for stage in stages:
         if stage == "extraction":
             result = run_extraction_stage(
-                session_factory, job.run_id, extraction_provider, config.max_concurrent_calls, cache_only=config.cache_only
+                session_factory,
+                job.run_id,
+                extraction_provider,
+                config.max_concurrent_calls,
+                config.max_calls_per_run,
+                cache_only=config.cache_only,
             )
         elif stage == "embedding":
             result = run_embedding_stage(
-                session_factory, job.run_id, embedding_provider, config.max_concurrent_calls, cache_only=config.cache_only
+                session_factory,
+                job.run_id,
+                embedding_provider,
+                config.max_concurrent_calls,
+                config.max_calls_per_run,
+                cache_only=config.cache_only,
             )
         elif stage == "layout":
             result = run_layout_stage(session_factory, job.run_id)
