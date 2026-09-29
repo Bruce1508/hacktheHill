@@ -4,12 +4,17 @@ intentional cache miss."""
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[4] / "configs" / "pipeline.yaml"
+# parents[4] from backend/src/backtrace/llm/config.py is the repo root —
+# true for a local checkout, but the Docker image only COPYs backend/src/,
+# not the repo-root configs/ directory. PIPELINE_CONFIG_PATH (set in
+# docker-compose, pointing at a mounted volume) overrides it there.
+DEFAULT_CONFIG_PATH = Path(os.environ.get("PIPELINE_CONFIG_PATH") or Path(__file__).resolve().parents[4] / "configs" / "pipeline.yaml")
 
 
 @dataclass(frozen=True)

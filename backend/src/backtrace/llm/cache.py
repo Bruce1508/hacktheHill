@@ -4,6 +4,7 @@ prompt_version must cost zero tokens."""
 import hashlib
 import json
 
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from backtrace.db.models import LlmCache
@@ -23,4 +24,11 @@ def get_cached(session: Session, key: str) -> dict | None:
 
 
 def put_cached(session: Session, key: str, response: dict) -> None:
-    session.merge(LlmCache(key=key, response=response))
+    """Core-level upsert, not session.merge(): the worker runs many
+    complaints concurrently, and duplicate complaint text (common in the
+    dev generator) means two threads can race to cache the same key.
+    merge()'s SELECT-then-INSERT isn't safe under that race — confirmed by
+    an actual UniqueViolation in testing. ON CONFLICT DO NOTHING is: same
+    key means same content, so the loser's write has nothing to add."""
+    stmt = pg_insert(LlmCache).values(key=key, response=response).on_conflict_do_nothing(index_elements=["key"])
+    session.execute(stmt)

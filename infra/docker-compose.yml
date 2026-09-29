@@ -27,9 +27,19 @@ services:
     ports:
       - "8000:8000"
 
-  # worker: see §11 of the design doc — added in the Day 2 plan once app.jobs
-  # exists and there is a real dequeue loop to run. Left out on Day 1 on purpose
-  # (see "Scope decision" at the top of this plan).
+  worker:
+    build:
+      context: ../backend
+    command: python -m backtrace.worker.main
+    volumes:
+      - ../configs:/app/configs:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL_PIPELINE: postgresql+psycopg://bt_pipeline:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      PIPELINE_CONFIG_PATH: /app/configs/pipeline.yaml
 
   web:
     image: node:20-slim

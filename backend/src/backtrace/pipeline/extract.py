@@ -67,6 +67,7 @@ def extract_complaint(
     text: str,
     provider: ExtractionProvider,
     customer_names: tuple[str, ...] = (),
+    cache_only: bool = False,
 ) -> ExtractionOutcome:
     """Cache stores only validated extractions, so a cache hit never needs
     re-validation and a bad response never sticks in the cache."""
@@ -76,18 +77,24 @@ def extract_complaint(
     cached = get_cached(session, key)
     if cached is not None:
         _log_call(session, run_id, "extraction", provider, 0, 0, 0.0, cache_hit=True)
+        session.commit()
         return ExtractionOutcome(redacted, ComplaintExtraction.model_validate(cached["extraction"]), provider.prompt_version, needs_review=False)
+    session.commit()  # release the connection before the slow network call
+    if cache_only:
+        raise RuntimeError(f"cache_only mode: no cached extraction for key {key}")
 
     for _ in range(2):  # one retry on schema-validation failure
         started = time.monotonic()
-        result = provider.extract(redacted)
+        result = provider.extract(redacted)  # no open transaction during this call
         latency_ms = (time.monotonic() - started) * 1000
         _log_call(session, run_id, "extraction", provider, result.tokens_in, result.tokens_out, latency_ms, cache_hit=False)
         try:
             parsed = ComplaintExtraction.model_validate_json(result.raw_json)
         except ValidationError:
+            session.commit()  # persist the call log; release before the retry's call
             continue
         put_cached(session, key, {"extraction": parsed.model_dump()})
+        session.commit()
         return ExtractionOutcome(redacted, parsed, provider.prompt_version, needs_review=False)
 
     return ExtractionOutcome(redacted, None, provider.prompt_version, needs_review=True)
@@ -105,6 +112,7 @@ def embed_complaint(
     redacted_text: str,
     symptom_summary: str,
     provider: EmbeddingProvider,
+    cache_only: bool = False,
 ) -> EmbeddingOutcome:
     """Embeds redacted text + validated symptom summary only (§8.2 step 3) —
     never the raw, un-redacted complaint."""
@@ -114,11 +122,16 @@ def embed_complaint(
     cached = get_cached(session, key)
     if cached is not None:
         _log_call(session, run_id, "embedding", provider, 0, 0, 0.0, cache_hit=True)
+        session.commit()
         return EmbeddingOutcome(cached["vector"], provider.model_id)
+    session.commit()  # release the connection before the slow network call
+    if cache_only:
+        raise RuntimeError(f"cache_only mode: no cached embedding for key {key}")
 
     started = time.monotonic()
-    result = provider.embed(input_text)
+    result = provider.embed(input_text)  # no open transaction during this call
     latency_ms = (time.monotonic() - started) * 1000
     _log_call(session, run_id, "embedding", provider, result.billable_units, 0, latency_ms, cache_hit=False)
     put_cached(session, key, {"vector": result.vector})
+    session.commit()
     return EmbeddingOutcome(result.vector, provider.model_id)

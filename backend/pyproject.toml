@@ -11,6 +11,7 @@ dependencies = [
     "psycopg[binary]>=3.2",
     "pyyaml>=6.0",
     "google-genai>=2.25",
+    "pgvector>=0.5",
 ]
 
 [project.optional-dependencies]

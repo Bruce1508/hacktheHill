@@ -1,6 +1,7 @@
 import datetime as dt
 from decimal import Decimal
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, func, JSON, Numeric
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -134,3 +135,50 @@ class LlmCall(Base):
     latency_ms: Mapped[float]
     cost_estimate: Mapped[Decimal] = mapped_column(Numeric(10, 4))
     cache_hit: Mapped[bool]
+
+
+class ComplaintFeatures(Base):
+    __tablename__ = "complaint_features"
+    __table_args__ = {"schema": "app"}
+
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"), primary_key=True)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"), primary_key=True)
+    extraction: Mapped[dict] = mapped_column(JSON)
+    extraction_version: Mapped[str]
+    pii_redacted_text: Mapped[str]
+    needs_review: Mapped[bool] = mapped_column(default=False)
+
+
+class ComplaintEmbedding(Base):
+    __tablename__ = "complaint_embeddings"
+    __table_args__ = {"schema": "app"}
+
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"), primary_key=True)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"), primary_key=True)
+    model_version: Mapped[str]
+    embedding: Mapped[list[float]] = mapped_column(Vector(768))
+
+
+class Job(Base):
+    __tablename__ = "jobs"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    type: Mapped[str]  # pipeline.run | pipeline.stage | letters.draft
+    stage: Mapped[str | None] = mapped_column(default=None)
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    payload: Mapped[dict] = mapped_column(JSON)
+    status: Mapped[str] = mapped_column(server_default="queued")  # queued|running|done|failed
+    attempts: Mapped[int] = mapped_column(server_default="0")
+    locked_at: Mapped[dt.datetime | None] = mapped_column(default=None)
+    error: Mapped[str | None] = mapped_column(default=None)
+    created_at: Mapped[dt.datetime] = mapped_column(server_default=func.now())
+    updated_at: Mapped[dt.datetime] = mapped_column(server_default=func.now())
+
+
+class WorkerHeartbeat(Base):
+    __tablename__ = "worker_heartbeat"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[bool] = mapped_column(primary_key=True, default=True)
+    updated_at: Mapped[dt.datetime] = mapped_column(server_default=func.now())
