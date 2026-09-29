@@ -1,0 +1,28 @@
+# Gemini model/prompt pins for Day 2 (§6.3, §8.5, §20). Confirmed live against
+# the account's models.list() and a real embed_content/interactions.create call
+# on 2026-09-29 — see docs/superpowers/plans/2026-09-28-day2-real-data-language.md.
+# Changing any model_id or prompt_version is an intentional cache miss.
+
+generation:
+  model_id: gemini-flash-lite-latest
+  prompt_version: dev-text-v1
+
+extraction:
+  model_id: gemini-flash-latest
+  prompt_version: extraction-v1
+
+embedding:
+  model_id: gemini-embedding-001
+  output_dimensionality: 768 # must match app.complaint_embeddings.embedding column (migration 0003)
+  prompt_version: embedding-v1
+
+# Guardrail for a full dev run (~1,600 complaints => ~1,600 extraction +
+# 1,600 embedding calls on a cold cache). Raise only with a deliberate reason.
+max_calls_per_run: 5000
+
+# Bounded concurrency for batched Gemini calls (§11) — no unbounded call loops.
+max_concurrent_calls: 4
+
+# When true, any provider call not already in llm_cache raises instead of
+# reaching the network — used by CI and the fake-provider test suite.
+cache_only: false

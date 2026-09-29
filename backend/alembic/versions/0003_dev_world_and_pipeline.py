@@ -124,6 +124,10 @@ def upgrade() -> None:
 
     op.create_table(
         "llm_calls",
+        # Composite PK: a hypertable's unique/PK index must include the
+        # partitioning column (called_at), so a plain surrogate `id` alone
+        # doesn't satisfy create_hypertable() below.
+        sa.Column("id", sa.BigInteger, sa.Identity(), nullable=False),
         sa.Column("run_id", sa.String, sa.ForeignKey("app.pipeline_runs.run_id"), nullable=False),
         sa.Column("stage", sa.String, nullable=False),
         sa.Column("model", sa.String, nullable=False),
@@ -134,6 +138,7 @@ def upgrade() -> None:
         sa.Column("cost_estimate", sa.Numeric(10, 4), nullable=False),
         sa.Column("cache_hit", sa.Boolean, nullable=False),
         sa.Column("called_at", sa.DateTime(timezone=True), nullable=False),
+        sa.PrimaryKeyConstraint("id", "called_at"),
         schema="app",
     )
     op.execute("SELECT create_hypertable('app.llm_calls', 'called_at');")

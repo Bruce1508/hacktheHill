@@ -1,6 +1,7 @@
 import datetime as dt
+from decimal import Decimal
 
-from sqlalchemy import ForeignKey, JSON
+from sqlalchemy import ForeignKey, func, JSON, Numeric
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -88,3 +89,48 @@ class Telemetry(Base):
     packet_loss_pct: Mapped[float]
     latency_ms: Mapped[float]
     alarm: Mapped[bool]
+
+
+class PipelineRun(Base):
+    __tablename__ = "pipeline_runs"
+    __table_args__ = {"schema": "app"}
+
+    run_id: Mapped[str] = mapped_column(primary_key=True)
+    dataset_profile: Mapped[str]
+    dataset_seed: Mapped[int]
+    config: Mapped[dict] = mapped_column(JSON)
+    started_at: Mapped[dt.datetime]
+    finished_at: Mapped[dt.datetime | None] = mapped_column(default=None)
+    stage_timings: Mapped[dict | None] = mapped_column(JSON, default=None)
+
+
+class LlmCache(Base):
+    __tablename__ = "llm_cache"
+    __table_args__ = {"schema": "app"}
+
+    # sha256 hex of (model, prompt_version, input, ...) — see llm/cache.py.
+    key: Mapped[str] = mapped_column(primary_key=True)
+    response: Mapped[dict] = mapped_column(JSON)
+    # server_default must be declared here too (not just in the migration's
+    # DDL) or SQLAlchemy sends an explicit NULL for an unset attribute and
+    # violates NOT NULL — confirmed by an actual insert attempt.
+    created_at: Mapped[dt.datetime] = mapped_column(server_default=func.now())
+
+
+class LlmCall(Base):
+    __tablename__ = "llm_calls"
+    __table_args__ = {"schema": "app"}
+
+    # Composite PK (id, called_at): a hypertable's PK/unique index must
+    # include the partitioning column — see migration 0003.
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    called_at: Mapped[dt.datetime] = mapped_column(primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    stage: Mapped[str]  # extraction | embedding
+    model: Mapped[str]
+    prompt_version: Mapped[str]
+    tokens_in: Mapped[int]
+    tokens_out: Mapped[int]
+    latency_ms: Mapped[float]
+    cost_estimate: Mapped[Decimal] = mapped_column(Numeric(10, 4))
+    cache_hit: Mapped[bool]
