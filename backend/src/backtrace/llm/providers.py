@@ -74,6 +74,11 @@ class FakeEmbeddingProvider:
         return EmbeddingResult(vector=vector, billable_units=len(text))
 
 
+# Without a timeout a half-closed socket (e.g. after laptop sleep) blocks a
+# call forever; observed on 2026-10-03 with the connection stuck in CLOSE_WAIT.
+REQUEST_TIMEOUT_MS = 60_000
+
+
 class GeminiExtractionProvider:
     """Verified live against google-genai 2.25.0 on 2026-09-29 — see
     docs/superpowers/plans/2026-09-28-day2-real-data-language.md. Uses the
@@ -85,7 +90,7 @@ class GeminiExtractionProvider:
 
         self.model_id = model_id
         self.prompt_version = prompt_version
-        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"])
+        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS})
 
     def extract(self, text: str) -> ExtractionResult:
         prompt = EXTRACTION_PROMPT_V1.format(text=text)
@@ -116,7 +121,7 @@ class GeminiEmbeddingProvider:
         self.model_id = model_id
         self.prompt_version = prompt_version
         self.dimension = dimension
-        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"])
+        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS})
 
     def embed(self, text: str) -> EmbeddingResult:
         from google.genai import types
