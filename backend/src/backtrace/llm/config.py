@@ -37,6 +37,7 @@ class PipelineConfig:
     embedding: EmbeddingPin
     max_calls_per_run: int
     max_concurrent_calls: int
+    max_calls_per_minute: int
     cache_only: bool
 
     @classmethod
@@ -48,5 +49,6 @@ class PipelineConfig:
             embedding=EmbeddingPin(**raw["embedding"]),
             max_calls_per_run=int(raw["max_calls_per_run"]),
             max_concurrent_calls=int(raw["max_concurrent_calls"]),
+            max_calls_per_minute=int(raw["max_calls_per_minute"]),
             cache_only=bool(raw["cache_only"]),
         )

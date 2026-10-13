@@ -12,6 +12,7 @@ from sqlalchemy.orm import sessionmaker
 
 from backtrace.db.models import Complaint, ComplaintEmbedding, ComplaintFeatures
 from backtrace.llm.providers import EmbeddingProvider, ExtractionProvider
+from backtrace.llm.rate_limit import RateLimiter
 from backtrace.pipeline.extract import embed_complaint, extract_complaint
 
 
@@ -21,10 +22,12 @@ def _pending_extraction_ids(session_factory: sessionmaker, run_id: str) -> list[
         return [row[0] for row in session.execute(select(Complaint.complaint_id)) if row[0] not in done]
 
 
-def _extract_one(session_factory: sessionmaker, run_id: str, complaint_id: str, provider: ExtractionProvider, cache_only: bool) -> str:
+def _extract_one(
+    session_factory: sessionmaker, run_id: str, complaint_id: str, provider: ExtractionProvider, cache_only: bool, rate_limiter: RateLimiter | None = None
+) -> str:
     with session_factory() as session:
         complaint = session.get(Complaint, complaint_id)
-        outcome = extract_complaint(session, run_id, complaint.text, provider, cache_only=cache_only)
+        outcome = extract_complaint(session, run_id, complaint.text, provider, cache_only=cache_only, rate_limiter=rate_limiter)
         session.merge(
             ComplaintFeatures(
                 run_id=run_id,
@@ -45,13 +48,15 @@ def run_extraction_stage(
     provider: ExtractionProvider,
     max_concurrent_calls: int,
     max_calls_per_run: int,
+    max_calls_per_minute: int | None = None,
     cache_only: bool = False,
 ) -> dict:
     pending = _pending_extraction_ids(session_factory, run_id)
     if len(pending) > max_calls_per_run:
         raise RuntimeError(f"extraction stage would make {len(pending)} calls, exceeding max_calls_per_run={max_calls_per_run}")
+    rate_limiter = RateLimiter(max_calls_per_minute) if max_calls_per_minute else None
     with ThreadPoolExecutor(max_workers=max(1, max_concurrent_calls)) as pool:
-        futures = [pool.submit(_extract_one, session_factory, run_id, cid, provider, cache_only) for cid in pending]
+        futures = [pool.submit(_extract_one, session_factory, run_id, cid, provider, cache_only, rate_limiter) for cid in pending]
         for future in as_completed(futures):
             future.result()  # surface exceptions rather than hiding them
     return {"pending_at_start": len(pending), "processed": len(pending)}
@@ -71,11 +76,13 @@ def _pending_embedding_ids(session_factory: sessionmaker, run_id: str) -> list[s
         return sorted(ready - done)
 
 
-def _embed_one(session_factory: sessionmaker, run_id: str, complaint_id: str, provider: EmbeddingProvider, cache_only: bool) -> str:
+def _embed_one(
+    session_factory: sessionmaker, run_id: str, complaint_id: str, provider: EmbeddingProvider, cache_only: bool, rate_limiter: RateLimiter | None = None
+) -> str:
     with session_factory() as session:
         features = session.get(ComplaintFeatures, (run_id, complaint_id))
         symptom_summary = " ".join(features.extraction.get("symptoms", []))
-        result = embed_complaint(session, run_id, features.pii_redacted_text, symptom_summary, provider, cache_only=cache_only)
+        result = embed_complaint(session, run_id, features.pii_redacted_text, symptom_summary, provider, cache_only=cache_only, rate_limiter=rate_limiter)
         session.merge(
             ComplaintEmbedding(run_id=run_id, complaint_id=complaint_id, model_version=result.model_version, embedding=result.vector)
         )
@@ -89,13 +96,15 @@ def run_embedding_stage(
     provider: EmbeddingProvider,
     max_concurrent_calls: int,
     max_calls_per_run: int,
+    max_calls_per_minute: int | None = None,
     cache_only: bool = False,
 ) -> dict:
     pending = _pending_embedding_ids(session_factory, run_id)
     if len(pending) > max_calls_per_run:
         raise RuntimeError(f"embedding stage would make {len(pending)} calls, exceeding max_calls_per_run={max_calls_per_run}")
+    rate_limiter = RateLimiter(max_calls_per_minute) if max_calls_per_minute else None
     with ThreadPoolExecutor(max_workers=max(1, max_concurrent_calls)) as pool:
-        futures = [pool.submit(_embed_one, session_factory, run_id, cid, provider, cache_only) for cid in pending]
+        futures = [pool.submit(_embed_one, session_factory, run_id, cid, provider, cache_only, rate_limiter) for cid in pending]
         for future in as_completed(futures):
             future.result()
     return {"pending_at_start": len(pending), "processed": len(pending)}

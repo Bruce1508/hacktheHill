@@ -50,6 +50,7 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
                 extraction_provider,
                 config.max_concurrent_calls,
                 config.max_calls_per_run,
+                max_calls_per_minute=config.max_calls_per_minute,
                 cache_only=config.cache_only,
             )
         elif stage == "embedding":
@@ -59,6 +60,7 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
                 embedding_provider,
                 config.max_concurrent_calls,
                 config.max_calls_per_run,
+                max_calls_per_minute=config.max_calls_per_minute,
                 cache_only=config.cache_only,
             )
         elif stage == "layout":

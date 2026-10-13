@@ -17,6 +17,7 @@ from backtrace.contracts.extraction import ComplaintExtraction
 from backtrace.db.models import LlmCall
 from backtrace.llm.cache import cache_key, get_cached, put_cached
 from backtrace.llm.providers import EmbeddingProvider, ExtractionProvider
+from backtrace.llm.rate_limit import RateLimiter
 from backtrace.pipeline.redact import redact_text
 
 
@@ -68,6 +69,7 @@ def extract_complaint(
     provider: ExtractionProvider,
     customer_names: tuple[str, ...] = (),
     cache_only: bool = False,
+    rate_limiter: RateLimiter | None = None,
 ) -> ExtractionOutcome:
     """Cache stores only validated extractions, so a cache hit never needs
     re-validation and a bad response never sticks in the cache."""
@@ -84,6 +86,8 @@ def extract_complaint(
         raise RuntimeError(f"cache_only mode: no cached extraction for key {key}")
 
     for _ in range(2):  # one retry on schema-validation failure
+        if rate_limiter is not None:
+            rate_limiter.acquire()
         started = time.monotonic()
         result = provider.extract(redacted)  # no open transaction during this call
         latency_ms = (time.monotonic() - started) * 1000
@@ -113,6 +117,7 @@ def embed_complaint(
     symptom_summary: str,
     provider: EmbeddingProvider,
     cache_only: bool = False,
+    rate_limiter: RateLimiter | None = None,
 ) -> EmbeddingOutcome:
     """Embeds redacted text + validated symptom summary only (§8.2 step 3) —
     never the raw, un-redacted complaint."""
@@ -128,6 +133,8 @@ def embed_complaint(
     if cache_only:
         raise RuntimeError(f"cache_only mode: no cached embedding for key {key}")
 
+    if rate_limiter is not None:
+        rate_limiter.acquire()
     started = time.monotonic()
     result = provider.embed(input_text)  # no open transaction during this call
     latency_ms = (time.monotonic() - started) * 1000

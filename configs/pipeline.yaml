@@ -31,6 +31,12 @@ max_calls_per_run: 5000
 # Bounded concurrency for batched Gemini calls (§11) — no unbounded call loops.
 max_concurrent_calls: 4
 
+# Free Tier generate_content cap is 15 req/min; a worker at
+# max_concurrent_calls=4 hit this in ~14s on 2026-10-03, and a sequential
+# script with no pacing hit it again on 2026-10-04. Caps calls per rolling
+# 60s window regardless of concurrency.
+max_calls_per_minute: 15
+
 # When true, any provider call not already in llm_cache raises instead of
 # reaching the network — used by CI and the fake-provider test suite.
 cache_only: false
