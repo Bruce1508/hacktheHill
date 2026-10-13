@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from backtrace.contracts.extraction import ComplaintExtraction
-from backtrace.llm.prompts import EXTRACTION_PROMPT_V1
+from backtrace.llm.prompts import DEV_TEXT_PROMPT_V1, EXTRACTION_PROMPT_V1
 
 
 @dataclass(frozen=True)
@@ -78,6 +78,11 @@ class FakeEmbeddingProvider:
 # call forever; observed on 2026-10-03 with the connection stuck in CLOSE_WAIT.
 REQUEST_TIMEOUT_MS = 60_000
 
+# The SDK's default retry policy (5 attempts, backing off up to 60s each) masks
+# a day-quota 429 as what looks like an indefinite hang rather than a fast,
+# clear error; observed on 2026-10-03. attempts=1 makes a 429/5xx raise immediately.
+NO_RETRY = {"attempts": 1}
+
 
 class GeminiExtractionProvider:
     """Verified live against google-genai 2.25.0 on 2026-09-29 — see
@@ -90,7 +95,7 @@ class GeminiExtractionProvider:
 
         self.model_id = model_id
         self.prompt_version = prompt_version
-        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS})
+        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS, "retry_options": NO_RETRY})
 
     def extract(self, text: str) -> ExtractionResult:
         prompt = EXTRACTION_PROMPT_V1.format(text=text)
@@ -121,7 +126,7 @@ class GeminiEmbeddingProvider:
         self.model_id = model_id
         self.prompt_version = prompt_version
         self.dimension = dimension
-        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS})
+        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS, "retry_options": NO_RETRY})
 
     def embed(self, text: str) -> EmbeddingResult:
         from google.genai import types
@@ -133,3 +138,31 @@ class GeminiEmbeddingProvider:
         )
         billable = resp.metadata.billable_character_count if resp.metadata else len(text)
         return EmbeddingResult(vector=list(resp.embeddings[0].values), billable_units=billable)
+
+
+class GeminiTextProvider:
+    """Generates dev-world complaint text via real Gemini. Matches the
+    TextProvider protocol in backtrace_eval.generator.dev (realize(seed) ->
+    str) by duck typing — not imported here, since backtrace_eval depends on
+    backtrace, not the other way round."""
+
+    def __init__(self, model_id: str, prompt_version: str, api_key: str | None = None) -> None:
+        from google import genai
+
+        self.model_id = model_id
+        self.prompt_version = prompt_version
+        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS, "retry_options": NO_RETRY})
+
+    def realize(self, seed) -> str:
+        # Uses generate_content, not interactions.create: the Interactions API
+        # was found on 2026-10-03 to ignore http_options.retry_options and
+        # effectively hang on a 429 instead of raising (confirmed live against
+        # an exhausted Free Tier quota); generate_content raises immediately.
+        prompt = DEV_TEXT_PROMPT_V1.format(
+            product=seed.product, region=seed.region, channel=seed.channel, persona=seed.persona,
+            symptom=seed.symptom, claimed_cause=seed.claimed_cause or "none stated",
+            secondary_symptom=seed.secondary_symptom or "none", is_repeat=seed.is_repeat,
+            vulnerability_mentioned=seed.vulnerability_mentioned,
+        )
+        resp = self._client.models.generate_content(model=self.model_id, contents=prompt)
+        return resp.text.strip()

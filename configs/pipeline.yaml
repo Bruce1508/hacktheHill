@@ -13,7 +13,7 @@
 
 generation:
   model_id: gemini-flash-lite-latest
-  prompt_version: dev-text-v1
+  prompt_version: dev-text-v2
 
 extraction:
   model_id: gemini-flash-lite-latest
