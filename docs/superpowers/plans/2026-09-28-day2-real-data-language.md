@@ -13,7 +13,7 @@ Phase 5 (PCA layout via `numpy.linalg.svd`, `GET /viz/complaints`, deck.gl scatt
   - The worker at `max_concurrent_calls: 4` hits the Free Tier per-minute limit (429 after about 28 calls in 14s) and has no rate limiter. The bulk run was therefore driven sequentially (about 25 complaints/min), outside the job queue. Job 12 was closed manually as `failed`, with a note.
 
 **Open items for Day 3:**
-- Add a per-minute rate limiter to the worker.
+- ~~Add a per-minute rate limiter to the worker.~~ Done 2026-10-09: `RateLimiter` (`backend/src/backtrace/llm/rate_limit.py`), a thread-safe sliding-window limiter, wired into `run_extraction_stage`/`run_embedding_stage` via a new `max_calls_per_minute` pipeline config (default 15, matching the Free Tier `generate_content` cap hit on 2026-10-03/04). `acquire()` runs only on the real-call path (cache hits are unaffected). 45/45 backend tests pass (43 prior + 2 new `test_rate_limit.py` cases with an injectable fake clock).
 - Batch embedding calls.
 - Consider regenerating `dev` text with a real `TextProvider`. Templated text may make clustering look better than it would be on real text.
 
