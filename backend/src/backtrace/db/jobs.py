@@ -6,6 +6,7 @@ from __future__ import annotations
 import datetime as dt
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from backtrace.db.models import Job
@@ -15,10 +16,21 @@ STALE_AFTER = dt.timedelta(minutes=10)
 
 
 def enqueue(session: Session, run_id: str, type_: str, payload: dict, stage: str | None = None) -> Job:
-    job = Job(type=type_, stage=stage, run_id=run_id, payload=payload)
-    session.add(job)
+    """A rerun of the same (run_id, type, stage) hits the unique constraint
+    (migration 0003) instead of stacking a second job, so this upserts
+    rather than inserts."""
+    stmt = (
+        pg_insert(Job)
+        .values(type=type_, stage=stage, run_id=run_id, payload=payload)
+        .on_conflict_do_update(
+            constraint="uq_app_jobs_run_type_stage",
+            set_={"status": "queued", "attempts": 0, "error": None, "locked_at": None},
+        )
+        .returning(Job.id)
+    )
+    job_id = session.execute(stmt).scalar_one()
     session.commit()
-    return job
+    return session.get(Job, job_id)
 
 
 def claim_next(session: Session) -> Job | None:
