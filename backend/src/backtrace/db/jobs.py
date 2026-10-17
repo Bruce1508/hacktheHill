@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import datetime as dt
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
@@ -31,6 +31,15 @@ def enqueue(session: Session, run_id: str, type_: str, payload: dict, stage: str
     job_id = session.execute(stmt).scalar_one()
     session.commit()
     return session.get(Job, job_id)
+
+
+def touch_running(session: Session, job_id: int) -> None:
+    """Refreshes locked_at on a job this worker is still actively processing
+    (e.g. an hours-long batch), so recover_stale doesn't mistake live work
+    for a dead worker's abandoned job and requeue it onto a second worker."""
+    stmt = update(Job).where(Job.id == job_id, Job.status == "running").values(locked_at=dt.datetime.now(dt.timezone.utc))
+    session.execute(stmt)
+    session.commit()
 
 
 def claim_next(session: Session) -> Job | None:

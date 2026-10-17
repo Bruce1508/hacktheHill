@@ -22,6 +22,43 @@ def _cleanup(database_url: str, job_id: int, run_id: str) -> None:
         session.commit()
 
 
+def test_recover_stale_requeues_a_job_whose_lock_was_never_refreshed():
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    run_id = "test-jobs-stale-1"
+    with get_session(database_url) as session:
+        _seed_run(session, run_id)
+        job = jobs.enqueue(session, run_id, "pipeline.stage", {}, stage="extraction")
+        job.status = "running"
+        job.locked_at = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=20)
+        session.commit()
+        job_id = job.id
+
+        recovered = jobs.recover_stale(session)
+        assert recovered == 1
+        assert session.get(Job, job_id).status == "queued"
+
+    _cleanup(database_url, job_id, run_id)
+
+
+def test_touch_running_keeps_a_long_job_from_being_recovered_as_stale():
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    run_id = "test-jobs-stale-2"
+    with get_session(database_url) as session:
+        _seed_run(session, run_id)
+        job = jobs.enqueue(session, run_id, "pipeline.stage", {}, stage="extraction")
+        job.status = "running"
+        job.locked_at = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=20)
+        session.commit()
+        job_id = job.id
+
+        jobs.touch_running(session, job_id)
+        recovered = jobs.recover_stale(session)
+        assert recovered == 0
+        assert session.get(Job, job_id).status == "running"
+
+    _cleanup(database_url, job_id, run_id)
+
+
 def test_enqueue_upserts_instead_of_raising_on_existing_run_type_stage():
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     run_id = "test-jobs-upsert-1"

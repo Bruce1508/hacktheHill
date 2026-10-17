@@ -7,6 +7,7 @@ from __future__ import annotations
 import datetime as dt
 import logging
 import os
+import threading
 import time
 
 from backtrace.db import jobs
@@ -38,6 +39,33 @@ def _heartbeat(session_factory) -> None:
     with session_factory() as session:
         session.merge(WorkerHeartbeat(id=True, updated_at=dt.datetime.now(dt.timezone.utc)))
         session.commit()
+
+
+def _heartbeat_and_touch_job(session_factory, job_id: int) -> None:
+    with session_factory() as session:
+        session.merge(WorkerHeartbeat(id=True, updated_at=dt.datetime.now(dt.timezone.utc)))
+        session.commit()
+        jobs.touch_running(session, job_id)
+
+
+def _run_job_with_live_heartbeat(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, job: Job) -> None:
+    """A job can run for hours (many Gemini calls). Without this, the outer
+    loop's heartbeat/stale-check only run between jobs, so /health reports
+    the worker dead and a second worker's recover_stale requeues the still-
+    running job onto itself — double processing."""
+    stop = threading.Event()
+
+    def keep_alive() -> None:
+        while not stop.wait(HEARTBEAT_INTERVAL_SECONDS):
+            _heartbeat_and_touch_job(session_factory, job.id)
+
+    thread = threading.Thread(target=keep_alive, daemon=True)
+    thread.start()
+    try:
+        _run_job(session_factory, config, extraction_provider, embedding_provider, job)
+    finally:
+        stop.set()
+        thread.join()
 
 
 def _run_job(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, job: Job) -> None:
@@ -104,7 +132,7 @@ def run_forever(database_url: str, use_fake_providers: bool = False) -> None:
 
         logger.info("claimed job=%s type=%s run=%s attempt=%d", job.id, job.type, job.run_id, job.attempts)
         try:
-            _run_job(session_factory, config, extraction_provider, embedding_provider, job)
+            _run_job_with_live_heartbeat(session_factory, config, extraction_provider, embedding_provider, job)
         except Exception as exc:  # noqa: BLE001 — a failed complaint must be visible, not silently dropped
             logger.exception("job=%s failed", job.id)
             with session_factory() as session:
