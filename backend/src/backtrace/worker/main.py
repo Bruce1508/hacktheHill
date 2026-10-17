@@ -86,8 +86,8 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
                 session_factory,
                 job.run_id,
                 embedding_provider,
-                config.max_concurrent_calls,
                 config.max_calls_per_run,
+                config.embedding_batch_size,
                 max_calls_per_minute=config.max_calls_per_minute,
                 cache_only=config.cache_only,
             )
