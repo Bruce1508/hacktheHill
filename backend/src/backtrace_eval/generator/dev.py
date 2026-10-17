@@ -25,6 +25,21 @@ SYMPTOMS = {
     "one_off": "an isolated account or service problem needs checking",
 }
 CLAIMS = ("the router", "the bill", "the local network", "the last service visit")
+# Which `kind`s each claim actually names correctly — "the router" never does,
+# since no kind represents the customer's own router being at fault.
+CLAIM_TRUE_KINDS: Mapping[str, frozenset[str]] = {
+    "the router": frozenset(),
+    "the bill": frozenset({"billing_double_charge", "unnotified_price_increase", "cancellation_fee"}),
+    "the local network": NETWORK_KINDS,
+    "the last service visit": frozenset({"technician_no_show"}),
+}
+
+
+def _is_misattributed(kind: str, claimed_cause: str | None) -> bool:
+    """claimed_cause is drawn at random (PR #1 finding #5), so it can
+    accidentally name the real cause — that's a lucky guess, not a
+    misattribution."""
+    return claimed_cause is not None and kind not in CLAIM_TRUE_KINDS[claimed_cause]
 
 
 @dataclass(frozen=True)
@@ -364,7 +379,7 @@ def generate_dev_world(config: DevWorldConfig, text_provider: TextProvider | Non
         world.gold_complaint_labels.append({
             "complaint_id": complaint_id, "root_cause_id": root_cause_id,
             "secondary_cause_id": secondary_cause_id, "true_cause": kind,
-            "customer_claimed_cause": claimed_cause, "misattributed": claimed_cause is not None,
+            "customer_claimed_cause": claimed_cause, "misattributed": _is_misattributed(kind, claimed_cause),
             "one_off": cause_index is None, "multi_issue": is_multi_issue,
             "financial_impact": str(financial_impact.quantize(Decimal("0.01"))),
             "customer_impact_severity": "high" if kind in NETWORK_KINDS else "medium",

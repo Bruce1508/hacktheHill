@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from backtrace_eval.generator.dev import DevWorldConfig, generate_dev_world, write_dev_world
+from backtrace_eval.generator.dev import DevWorldConfig, _is_misattributed, generate_dev_world, write_dev_world
 
 
 CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs/worlds/dev.yaml"
@@ -14,6 +14,15 @@ def smoke_config() -> DevWorldConfig:
     raw = yaml.safe_load(CONFIG_PATH.read_text())
     raw.update(num_customers=120, num_complaints=100, window_days=4)
     return DevWorldConfig.from_dict(raw)
+
+
+def test_is_misattributed_only_true_when_claim_names_the_wrong_kind():
+    assert _is_misattributed("fiber_cut", None) is False
+    assert _is_misattributed("fiber_cut", "the local network") is False  # correct guess
+    assert _is_misattributed("fiber_cut", "the bill") is True  # wrong guess
+    assert _is_misattributed("billing_double_charge", "the bill") is False  # correct guess
+    assert _is_misattributed("billing_double_charge", "the local network") is True  # wrong guess
+    assert _is_misattributed("one_off", "the router") is True  # no claim is ever correct for one_off
 
 
 def test_dev_world_contract_and_separation():
@@ -26,7 +35,10 @@ def test_dev_world_contract_and_separation():
     assert len(world.network_nodes) == len(config.regions) * config.nodes_per_region
     assert len(world.telemetry) == config.window_days * 24 * 12 * (len(world.network_nodes) + len(world.network_links))
     assert sum(label["one_off"] for label in world.gold_complaint_labels) == 20
-    assert sum(label["misattributed"] for label in world.gold_complaint_labels) == 15
+    # 15 complaints carry a customer guess (customer_claimed_cause); 5 of those
+    # guesses randomly land on the true cause and so are correct, not misattributed.
+    assert sum(label["customer_claimed_cause"] is not None for label in world.gold_complaint_labels) == 15
+    assert sum(label["misattributed"] for label in world.gold_complaint_labels) == 10
     assert sum(label["multi_issue"] for label in world.gold_complaint_labels) == 8
     assert any(row["is_repeat"] for row in world.complaints)
     assert any(label["secondary_cause_id"] for label in world.gold_complaint_labels)
