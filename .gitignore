@@ -5,6 +5,10 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 fixtures/dev/
+fixtures/dev.bak-templated-text/
+
+# Claude-mem plugin (local, machine-generated)
+.windsurf/
 
 # Node
 node_modules/
