@@ -38,6 +38,15 @@ def test_three_well_separated_blobs_cluster_purely():
     assert (labels[180:] == -1).sum() >= 5
 
 
+def test_fewer_points_than_min_samples_is_all_noise_not_a_crash():
+    rng = np.random.default_rng(3)
+    vectors = rng.normal(size=(PARAMS.min_samples - 1, 768))
+
+    labels = cluster_symptoms(vectors, params=PARAMS)
+
+    assert (labels == -1).all()
+
+
 def test_clustering_is_deterministic_for_the_same_input():
     rng = np.random.default_rng(1)
     vectors = _blobs(rng)

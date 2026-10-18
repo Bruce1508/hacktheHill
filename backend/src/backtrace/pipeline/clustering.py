@@ -31,6 +31,11 @@ def structured_matrix(products: Sequence[str], regions: Sequence[str]) -> np.nda
 
 def cluster_symptoms(vectors: np.ndarray, *, params: ClusterParams, structured: np.ndarray | None = None) -> np.ndarray:
     n, d = vectors.shape
+    if n < params.min_samples:
+        # HDBSCAN requires n_samples >= min_samples; too few points to form
+        # even one cluster, so everything is noise.
+        return np.full(n, -1, dtype=int)
+
     norms = np.linalg.norm(vectors, axis=1, keepdims=True)
     normalized = vectors / np.where(norms == 0, 1.0, norms)
 
