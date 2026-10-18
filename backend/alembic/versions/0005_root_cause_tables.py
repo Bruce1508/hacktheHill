@@ -82,15 +82,20 @@ def upgrade() -> None:
 
     op.create_table(
         "cohort_members",
-        sa.Column("cohort_id", sa.String, sa.ForeignKey("app.cohorts.id"), primary_key=True),
+        # PK is (run_id, complaint_id), not (cohort_id, complaint_id): §8.3
+        # assigns each complaint to exactly one candidate/cohort, so a
+        # complaint can have at most one membership row per run — the same
+        # per-complaint-per-run uniqueness ComplaintFeatures/
+        # ComplaintEmbedding/ComplaintLayout already enforce.
+        sa.Column("run_id", sa.String, sa.ForeignKey("app.pipeline_runs.run_id"), primary_key=True),
         sa.Column("complaint_id", sa.String, sa.ForeignKey("app.complaints.complaint_id"), primary_key=True),
-        sa.Column("run_id", sa.String, sa.ForeignKey("app.pipeline_runs.run_id"), nullable=False),
+        sa.Column("cohort_id", sa.String, sa.ForeignKey("app.cohorts.id"), nullable=False),
         sa.Column("membership_score", sa.Float, nullable=False),
         sa.Column("assigned_by", sa.String, nullable=False),  # "batch"
         sa.Column("needs_review", sa.Boolean, nullable=False),
         schema="app",
     )
-    op.create_index("ix_app_cohort_members_run_id", "cohort_members", ["run_id"], schema="app")
+    op.create_index("ix_app_cohort_members_cohort_id", "cohort_members", ["cohort_id"], schema="app")
 
     op.create_table(
         "cohort_event_links",
@@ -102,6 +107,7 @@ def upgrade() -> None:
         sa.Column("overlap_score", sa.Float, nullable=False),
         sa.Column("time_offset_minutes", sa.Float, nullable=True),
         sa.Column("evidence", sa.JSON, nullable=False),
+        sa.CheckConstraint("event_id IS NOT NULL OR anomaly_id IS NOT NULL", name="ck_app_cohort_event_links_has_evidence"),
         schema="app",
     )
     op.create_index("ix_app_cohort_event_links_run_id", "cohort_event_links", ["run_id"], schema="app")
@@ -110,7 +116,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_index("ix_app_cohort_event_links_run_id", table_name="cohort_event_links", schema="app")
     op.drop_table("cohort_event_links", schema="app")
-    op.drop_index("ix_app_cohort_members_run_id", table_name="cohort_members", schema="app")
+    op.drop_index("ix_app_cohort_members_cohort_id", table_name="cohort_members", schema="app")
     op.drop_table("cohort_members", schema="app")
     op.drop_index("ix_app_cohorts_run_id", table_name="cohorts", schema="app")
     op.drop_table("cohorts", schema="app")

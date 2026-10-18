@@ -260,9 +260,9 @@ class CohortMember(Base):
     __tablename__ = "cohort_members"
     __table_args__ = {"schema": "app"}
 
-    cohort_id: Mapped[str] = mapped_column(ForeignKey("app.cohorts.id"), primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"), primary_key=True)
     complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"), primary_key=True)
-    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    cohort_id: Mapped[str] = mapped_column(ForeignKey("app.cohorts.id"))
     membership_score: Mapped[float]
     assigned_by: Mapped[str]  # "batch"
     needs_review: Mapped[bool]

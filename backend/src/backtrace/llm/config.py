@@ -98,8 +98,19 @@ class PipelineConfig:
                 min_points=int(raw["anomaly"]["min_points"]),
                 metrics=tuple(raw["anomaly"]["metrics"]),
             ),
-            burst=BurstParams(**raw["burst"]),
-            clustering=ClusterParams(**raw["clustering"]),
+            burst=BurstParams(
+                bucket_minutes=int(raw["burst"]["bucket_minutes"]),
+                baseline_buckets=int(raw["burst"]["baseline_buckets"]),
+                z_threshold=float(raw["burst"]["z_threshold"]),
+                min_count=int(raw["burst"]["min_count"]),
+            ),
+            clustering=ClusterParams(
+                pca_dims=int(raw["clustering"]["pca_dims"]),
+                min_cluster_size=int(raw["clustering"]["min_cluster_size"]),
+                min_samples=int(raw["clustering"]["min_samples"]),
+                structured_weight=float(raw["clustering"]["structured_weight"]),
+                seed=int(raw["clustering"]["seed"]),
+            ),
             linking=LinkParams(
                 weights=dict(raw["linking"]["weights"]),
                 threshold=float(raw["linking"]["threshold"]),
