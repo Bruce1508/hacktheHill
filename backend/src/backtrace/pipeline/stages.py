@@ -94,7 +94,9 @@ def run_embedding_stage(
     embed_complaint uses, so existing llm_cache rows keep hitting."""
     pending = _pending_embedding_ids(session_factory, run_id)
     if len(pending) > max_calls_per_run:
-        raise RuntimeError(f"embedding stage would make {len(pending)} calls, exceeding max_calls_per_run={max_calls_per_run}")
+        # Deliberately conservative: compares complaint count, not the batched
+        # request count, against max_calls_per_run.
+        raise RuntimeError(f"embedding stage would process {len(pending)} complaints, exceeding max_calls_per_run={max_calls_per_run}")
     rate_limiter = RateLimiter(max_calls_per_minute) if max_calls_per_minute else None
 
     items: list[tuple[str, str, str]] = []  # (complaint_id, input_text, cache_key)

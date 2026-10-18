@@ -14,6 +14,18 @@ def test_embed_batch_raises_if_response_count_does_not_match_input_count():
         provider.embed_batch(["first text", "second text"])
 
 
+def test_embed_batch_falls_back_to_length_estimate_when_metadata_has_no_billable_count():
+    provider = GeminiEmbeddingProvider("gemini-embed", "v1", dimension=3, api_key="fake-key")
+    embeddings = [SimpleNamespace(values=[0.1, 0.2, 0.3]), SimpleNamespace(values=[0.4, 0.5, 0.6])]
+    provider._client = SimpleNamespace(
+        models=SimpleNamespace(
+            embed_content=lambda **_: SimpleNamespace(embeddings=embeddings, metadata=SimpleNamespace(billable_character_count=None))
+        )
+    )
+    results = provider.embed_batch(["first text", "second text longer"])
+    assert [r.billable_units for r in results] == [len("first text"), len("second text longer")]
+
+
 def test_split_billable_units_sums_to_total():
     texts = ["a", "bb", "ccc", "dddd"]
     parts = split_billable_units(100, texts)

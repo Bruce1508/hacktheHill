@@ -173,10 +173,8 @@ class GeminiEmbeddingProvider:
         )
         if len(resp.embeddings) != len(texts):
             raise RuntimeError(f"embed_content returned {len(resp.embeddings)} embeddings for {len(texts)} inputs")
-        if resp.metadata:
-            units = split_billable_units(resp.metadata.billable_character_count, texts)
-        else:
-            units = [len(t) for t in texts]
+        billable_total = resp.metadata.billable_character_count if resp.metadata else None
+        units = split_billable_units(billable_total, texts) if billable_total is not None else [len(t) for t in texts]
         return [EmbeddingResult(vector=list(resp.embeddings[i].values), billable_units=units[i]) for i in range(len(texts))]
 
 
