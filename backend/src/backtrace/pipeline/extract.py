@@ -104,6 +104,16 @@ def extract_complaint(
     return ExtractionOutcome(redacted, None, provider.prompt_version, needs_review=True)
 
 
+def embedding_input_and_key(provider: EmbeddingProvider, redacted_text: str, symptom_summary: str) -> tuple[str, str]:
+    """The embedding input text and its cache key, shared by embed_complaint
+    and the batched run_embedding_stage so the two paths can never drift and
+    miss each other's llm_cache rows (existing dev-run-1/dev-run-2 rows must
+    keep hitting)."""
+    input_text = f"{redacted_text}\n\n{symptom_summary}"
+    key = cache_key(provider.model_id, provider.prompt_version, input_text, dimension=provider.dimension)
+    return input_text, key
+
+
 @dataclass(frozen=True)
 class EmbeddingOutcome:
     vector: list[float]
@@ -121,8 +131,7 @@ def embed_complaint(
 ) -> EmbeddingOutcome:
     """Embeds redacted text + validated symptom summary only (§8.2 step 3) —
     never the raw, un-redacted complaint."""
-    input_text = f"{redacted_text}\n\n{symptom_summary}"
-    key = cache_key(provider.model_id, provider.prompt_version, input_text, dimension=provider.dimension)
+    input_text, key = embedding_input_and_key(provider, redacted_text, symptom_summary)
 
     cached = get_cached(session, key)
     if cached is not None:

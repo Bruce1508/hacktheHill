@@ -7,7 +7,7 @@ import hashlib
 import os
 import random
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, Sequence
 
 from backtrace.contracts.extraction import ComplaintExtraction
 from backtrace.llm.prompts import DEV_TEXT_PROMPT_V1, EXTRACTION_PROMPT_V1
@@ -40,6 +40,23 @@ class EmbeddingProvider(Protocol):
     dimension: int
 
     def embed(self, text: str) -> EmbeddingResult: ...
+    def embed_batch(self, texts: Sequence[str]) -> list[EmbeddingResult]: ...
+
+
+def split_billable_units(total: int, texts: Sequence[str]) -> list[int]:
+    """Splits a batch response's single billable-character total across its
+    items, proportionally to each item's length, with the rounding
+    remainder on the last item so the parts always sum exactly to `total`."""
+    lengths = [len(t) for t in texts]
+    total_len = sum(lengths)
+    if total_len == 0:
+        parts = [0] * len(lengths)
+        if parts:
+            parts[-1] = total
+        return parts
+    parts = [total * length // total_len for length in lengths]
+    parts[-1] += total - sum(parts)
+    return parts
 
 
 class FakeExtractionProvider:
@@ -72,6 +89,9 @@ class FakeEmbeddingProvider:
         rng = random.Random(seed)
         vector = [rng.uniform(-1.0, 1.0) for _ in range(self.dimension)]
         return EmbeddingResult(vector=vector, billable_units=len(text))
+
+    def embed_batch(self, texts: Sequence[str]) -> list[EmbeddingResult]:
+        return [self.embed(t) for t in texts]
 
 
 # Without a timeout a half-closed socket (e.g. after laptop sleep) blocks a
@@ -138,6 +158,24 @@ class GeminiEmbeddingProvider:
         )
         billable = resp.metadata.billable_character_count if resp.metadata else len(text)
         return EmbeddingResult(vector=list(resp.embeddings[0].values), billable_units=billable)
+
+    def embed_batch(self, texts: Sequence[str]) -> list[EmbeddingResult]:
+        """One embed_content call for the whole batch — this is the point of
+        batching: ~1,600 per-complaint requests collapse into ~16 (§ Day 3
+        plan). Gemini's Free Tier quota is per request, not per item."""
+        from google.genai import types
+
+        texts = list(texts)
+        resp = self._client.models.embed_content(
+            model=self.model_id,
+            contents=texts,
+            config=types.EmbedContentConfig(output_dimensionality=self.dimension),
+        )
+        if len(resp.embeddings) != len(texts):
+            raise RuntimeError(f"embed_content returned {len(resp.embeddings)} embeddings for {len(texts)} inputs")
+        billable_total = resp.metadata.billable_character_count if resp.metadata else None
+        units = split_billable_units(billable_total, texts) if billable_total is not None else [len(t) for t in texts]
+        return [EmbeddingResult(vector=list(resp.embeddings[i].values), billable_units=units[i]) for i in range(len(texts))]
 
 
 class GeminiTextProvider:

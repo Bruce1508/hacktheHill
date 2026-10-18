@@ -39,6 +39,11 @@ max_concurrent_calls: 4
 # likely send/arrival timing jitter versus Google's own window.
 max_calls_per_minute: 12
 
+# 100 per Gemini API docs, unverified live. embed_content accepts a list of
+# contents in one request; this is the per-request item limit, so ~1,600
+# complaints become ~16 requests instead of ~1,600 (Day 3 batching).
+embedding_batch_size: 100
+
 # When true, any provider call not already in llm_cache raises instead of
 # reaching the network — used by CI and the fake-provider test suite.
 cache_only: false

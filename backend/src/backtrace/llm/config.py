@@ -38,6 +38,7 @@ class PipelineConfig:
     max_calls_per_run: int
     max_concurrent_calls: int
     max_calls_per_minute: int
+    embedding_batch_size: int
     cache_only: bool
 
     @classmethod
@@ -50,5 +51,6 @@ class PipelineConfig:
             max_calls_per_run=int(raw["max_calls_per_run"]),
             max_concurrent_calls=int(raw["max_concurrent_calls"]),
             max_calls_per_minute=int(raw["max_calls_per_minute"]),
+            embedding_batch_size=int(raw["embedding_batch_size"]),
             cache_only=bool(raw["cache_only"]),
         )
