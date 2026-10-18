@@ -1,0 +1,9 @@
+seed: 42
+num_customers: 100
+num_events: 3
+num_complaints: 100
+regions: [north, south, east, west]
+plans: [fiber_basic, fiber_pro, business_ethernet, tv_bundle]
+channels: [phone, email, chat, web]
+event_sources: [network_alarm, billing_run, deploy, policy_change]
+window_days: 14

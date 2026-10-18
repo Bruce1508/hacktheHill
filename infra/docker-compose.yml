@@ -8,7 +8,7 @@ services:
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
-      - backtrace_db_data:/var/lib/postgresql/data
+      - backtrace_db_data:/home/postgres/pgdata/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -27,18 +27,30 @@ services:
     ports:
       - "8000:8000"
 
-  # worker: see §11 of the design doc — added in the Day 2 plan once app.jobs
-  # exists and there is a real dequeue loop to run. Left out on Day 1 on purpose
-  # (see "Scope decision" at the top of this plan).
+  worker:
+    build:
+      context: ../backend
+    command: python -m backtrace.worker.main
+    volumes:
+      - ../configs:/app/configs:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL_PIPELINE: postgresql+psycopg://bt_pipeline:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      PIPELINE_CONFIG_PATH: /app/configs/pipeline.yaml
 
   web:
     image: node:20-slim
     working_dir: /app
     volumes:
       - ../apps/web:/app
+    # package.json's "dev" script ends in "#" to swallow pnpm 12's forwarded -- args below;
+    # do not remove that trailing "#" or this command will crash with a project-directory parse error.
     command: sh -c "corepack enable && pnpm install && pnpm dev -- --hostname 0.0.0.0"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      API_URL: http://api:8000
     ports:
       - "3000:3000"
     depends_on:

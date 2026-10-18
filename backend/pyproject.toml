@@ -9,6 +9,10 @@ dependencies = [
     "sqlalchemy>=2.0",
     "alembic>=1.13",
     "psycopg[binary]>=3.2",
+    "pyyaml>=6.0",
+    "google-genai>=2.25",
+    "pgvector>=0.5",
+    "numpy>=1.26",
 ]
 
 [project.optional-dependencies]

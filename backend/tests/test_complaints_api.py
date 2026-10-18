@@ -18,7 +18,7 @@ def _seed_one_complaint():
             Complaint(
                 complaint_id="api-complaint-1",
                 customer_id="api-cust-1",
-                received_at=dt.datetime.now(dt.timezone.utc),
+                received_at=dt.datetime(2020, 1, 1, tzinfo=dt.timezone.utc),
                 channel="web",
                 text="My bill is wrong.",
                 product="fiber_basic",
@@ -35,6 +35,12 @@ def test_list_complaints_returns_seeded_row(client):
     assert response.status_code == 200
     ids = [row["complaint_id"] for row in response.json()]
     assert "api-complaint-1" in ids
+
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    with get_session(database_url) as session:
+        session.delete(session.get(Complaint, "api-complaint-1"))
+        session.delete(session.get(Customer, "api-cust-1"))
+        session.commit()
 
 
 def test_list_complaints_requires_a_demo_user(client):
