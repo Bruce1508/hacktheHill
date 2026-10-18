@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T09:36:45Z",
+  "title": "Design System: Backtrace",
+  "extensions": {
+    "colorMeta": {
+      "signal-red": { "role": "primary", "displayName": "Ciena Signal Red", "canonical": "#e30613", "tonalRamp": ["oklch(0.15 0.07 27)", "oklch(0.27 0.13 27)", "oklch(0.39 0.19 27)", "#a6000a", "#e30613", "#ff3347", "oklch(0.86 0.08 27)", "#fff2f3"] },
+      "signal-red-dark": { "role": "primary", "displayName": "Boundary Red", "canonical": "#a6000a", "tonalRamp": ["oklch(0.15 0.07 27)", "oklch(0.25 0.12 27)", "#a6000a", "oklch(0.48 0.19 27)", "oklch(0.60 0.17 27)", "oklch(0.72 0.13 27)", "oklch(0.84 0.08 27)", "oklch(0.95 0.025 27)"] },
+      "signal-red-bright": { "role": "primary", "displayName": "Focus Red", "canonical": "#ff3347", "tonalRamp": ["oklch(0.15 0.07 22)", "oklch(0.27 0.13 22)", "oklch(0.39 0.19 22)", "oklch(0.51 0.23 22)", "#ff3347", "oklch(0.74 0.15 22)", "oklch(0.86 0.08 22)", "oklch(0.95 0.025 22)"] },
+      "signal-red-wash": { "role": "primary", "displayName": "Signal Wash", "canonical": "#fff2f3", "tonalRamp": ["oklch(0.15 0.03 20)", "oklch(0.27 0.03 20)", "oklch(0.39 0.03 20)", "oklch(0.51 0.03 20)", "oklch(0.63 0.025 20)", "oklch(0.75 0.02 20)", "oklch(0.87 0.015 20)", "#fff2f3"] },
+      "paper": { "role": "neutral", "displayName": "Evidence Paper", "canonical": "#ffffff", "tonalRamp": ["#111111", "#303030", "#505050", "#707070", "#909090", "#b5b5b5", "#dedede", "#ffffff"] },
+      "field": { "role": "neutral", "displayName": "Projection Field", "canonical": "#f4f5f6", "tonalRamp": ["oklch(0.15 0.005 240)", "oklch(0.27 0.005 240)", "oklch(0.39 0.005 240)", "oklch(0.51 0.005 240)", "oklch(0.63 0.005 240)", "oklch(0.75 0.005 240)", "oklch(0.87 0.005 240)", "#f4f5f6"] },
+      "ink": { "role": "neutral", "displayName": "True Ink", "canonical": "#111111", "tonalRamp": ["#111111", "#303030", "#505050", "#707070", "#909090", "#b5b5b5", "#dedede", "#ffffff"] },
+      "muted-ink": { "role": "neutral", "displayName": "Cool Muted Ink", "canonical": "#62676d", "tonalRamp": ["oklch(0.15 0.01 245)", "oklch(0.27 0.01 245)", "#62676d", "oklch(0.51 0.01 245)", "oklch(0.63 0.01 245)", "oklch(0.75 0.01 245)", "oklch(0.87 0.008 245)", "oklch(0.95 0.004 245)"] },
+      "construction-rule": { "role": "neutral", "displayName": "Construction Rule", "canonical": "#d7dadd", "tonalRamp": ["oklch(0.15 0.006 240)", "oklch(0.27 0.006 240)", "oklch(0.39 0.006 240)", "oklch(0.51 0.006 240)", "oklch(0.63 0.006 240)", "oklch(0.75 0.006 240)", "#d7dadd", "oklch(0.95 0.003 240)"] },
+      "soft-rule": { "role": "neutral", "displayName": "Soft Rule", "canonical": "#e8eaec", "tonalRamp": ["oklch(0.15 0.005 240)", "oklch(0.27 0.005 240)", "oklch(0.39 0.005 240)", "oklch(0.51 0.005 240)", "oklch(0.63 0.005 240)", "oklch(0.75 0.005 240)", "oklch(0.87 0.004 240)", "#e8eaec"] },
+      "unspecified-point": { "role": "neutral", "displayName": "Unspecified Grey", "canonical": "#a4a8ad", "tonalRamp": ["oklch(0.15 0.008 240)", "oklch(0.27 0.008 240)", "oklch(0.39 0.008 240)", "oklch(0.51 0.008 240)", "#a4a8ad", "oklch(0.75 0.008 240)", "oklch(0.87 0.006 240)", "oklch(0.95 0.003 240)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Run Display", "purpose": "Run identifiers and the strongest operational fact." },
+      "headline": { "displayName": "Section Headline", "purpose": "Section, interpretation, and evidence-tooltip headings." },
+      "body": { "displayName": "Evidence Body", "purpose": "Complaint records and explanatory copy." },
+      "label": { "displayName": "Operational Label", "purpose": "Navigation, legends, facts, counts, and metadata." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "reduced-motion", "value": "0.01ms", "purpose": "Collapse animation and transition duration when reduced motion is requested." }
+    ],
+    "breakpoints": [
+      { "name": "wide-to-compact", "value": "1120px" },
+      { "name": "rail-to-bar", "value": "820px" },
+      { "name": "table-to-records", "value": "520px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Navigation Rail",
+      "kind": "nav",
+      "refersTo": "navigation-rail",
+      "description": "Black structural navigation with a red current-state edge.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Workspace sections\"><a class=\"ds-nav-item ds-nav-current\" href=\"#\" aria-current=\"page\">Map</a><a class=\"ds-nav-item\" href=\"#\">Cases</a></nav>",
+      "css": ".ds-nav { width: 72px; min-height: 220px; display: flex; flex-direction: column; padding-top: 22px; background: var(--bt-ink, #111111); font-family: Geist, sans-serif; } .ds-nav-item { min-height: 64px; display: grid; place-items: center; position: relative; color: rgb(255 255 255 / 58%); font-size: .7rem; font-weight: 650; text-decoration: none; } .ds-nav-item:hover, .ds-nav-item:focus-visible, .ds-nav-current { color: var(--bt-paper, #ffffff); } .ds-nav-item:focus-visible { outline: 2px solid var(--bt-red, #e30613); outline-offset: -3px; } .ds-nav-current::before { content: ''; position: absolute; left: 0; width: 3px; height: 26px; background: var(--bt-red, #e30613); }"
+    },
+    {
+      "name": "Complaint Field",
+      "kind": "custom",
+      "refersTo": "signal-field",
+      "description": "A ruled evidence plane whose point colors remain claims and symptoms, never verified cause.",
+      "html": "<figure class=\"ds-field\" aria-label=\"Complaint proximity field\"><span class=\"ds-point ds-point-red\" style=\"left:29%;top:35%\"></span><span class=\"ds-point ds-point-black\" style=\"left:53%;top:46%\"></span><span class=\"ds-point ds-point-grey\" style=\"left:67%;top:62%\"></span><figcaption>Proximity reflects language and extracted symptoms.</figcaption></figure>",
+      "css": ".ds-field { width: 100%; height: 260px; margin: 0; position: relative; overflow: hidden; background: var(--bt-field, #f4f5f6); border: 1px solid var(--bt-rule, #d7dadd); color: var(--bt-muted, #62676d); font: 400 .72rem/1.5 Geist, sans-serif; } .ds-field::before, .ds-field::after { content: ''; position: absolute; background: rgb(17 17 17 / 8%); } .ds-field::before { left: 50%; top: 0; width: 1px; height: 100%; } .ds-field::after { left: 0; top: 50%; width: 100%; height: 1px; } .ds-field figcaption { position: absolute; left: 12px; bottom: 10px; } .ds-point { width: 9px; height: 9px; position: absolute; z-index: 1; border: 1px solid #fff; border-radius: 50%; } .ds-point-red { background: var(--bt-red, #e30613); } .ds-point-black { background: var(--bt-ink, #111111); } .ds-point-grey { background: #a4a8ad; }"
+    },
+    {
+      "name": "Evidence Tooltip",
+      "kind": "custom",
+      "refersTo": "evidence-tooltip",
+      "description": "Point-level detail capped by an explicit verification boundary.",
+      "html": "<div class=\"ds-tooltip\" role=\"status\"><strong>dev-complaint-01488</strong><span>Claimed cause: technician missed the booked appointment</span><small>Claim only · verify with operational evidence</small></div>",
+      "css": ".ds-tooltip { width: 260px; display: grid; gap: 5px; padding: 12px 14px; background: var(--bt-paper, #ffffff); border: 1px solid var(--bt-ink, #111111); border-top: 3px solid var(--bt-red, #e30613); color: var(--bt-ink, #111111); font: 400 .72rem/1.35 Geist, sans-serif; } .ds-tooltip strong { font-family: 'Barlow Condensed', sans-serif; font-size: .92rem; letter-spacing: .01em; } .ds-tooltip small { padding-top: 5px; border-top: 1px solid var(--bt-rule, #d7dadd); color: var(--bt-muted, #62676d); font-size: .65rem; }"
+    },
+    {
+      "name": "Interpretation Sequence",
+      "kind": "custom",
+      "refersTo": "interpretation-rail",
+      "description": "A numbered evidence-reading sequence ending in a red boundary note.",
+      "html": "<aside class=\"ds-interpretation\"><h3>Read this view carefully</h3><p>This map shows symptom proximity. It does not verify why an incident happened.</p><ol><li><b>Complaint language</b><span>Customer text is structured before layout.</span></li><li><b>Symptom proximity</b><span>Nearby points may not share a cause.</span></li><li><b>Operational evidence</b><span>Telemetry, topology, scope, and time must agree.</span></li></ol><footer><b>Current boundary</b><span>Root-cause linking is not represented here.</span></footer></aside>",
+      "css": ".ds-interpretation { padding: 24px 0 24px 28px; border-top: 1px solid var(--bt-red, #e30613); color: var(--bt-ink, #111111); font: 400 .75rem/1.5 Geist, sans-serif; } .ds-interpretation h3 { margin: 0; font: 700 1.38rem/1.2 'Barlow Condensed', sans-serif; } .ds-interpretation > p { max-width: 29ch; margin: 18px 0 28px; font-size: .95rem; } .ds-interpretation ol { margin: 0; padding: 0; list-style: none; counter-reset: step; } .ds-interpretation li { display: grid; grid-template-columns: 18px 1fr; gap: 5px 14px; padding-bottom: 22px; counter-increment: step; } .ds-interpretation li::before { content: counter(step); width: 14px; height: 14px; display: grid; place-items: center; grid-row: 1 / span 2; border: 1px solid var(--bt-ink, #111111); border-radius: 50%; font-size: .52rem; } .ds-interpretation li span { grid-column: 2; color: var(--bt-muted, #62676d); } .ds-interpretation footer { display: grid; gap: 6px; padding-top: 18px; border-top: 1px solid var(--bt-rule, #d7dadd); } .ds-interpretation footer b { color: var(--bt-red-dark, #a6000a); } .ds-interpretation footer span { color: var(--bt-muted, #62676d); }"
+    },
+    {
+      "name": "Mobile Ledger Record",
+      "kind": "custom",
+      "refersTo": "ledger-record",
+      "description": "Complaint-first record with explicit metadata labels for narrow screens.",
+      "html": "<article class=\"ds-record\"><p class=\"ds-complaint\"><span>Complaint</span>The technician missed my appointment and I need an answer.</p><dl><div><dt>Received</dt><dd>Jan. 1, 08:04 a.m.</dd></div><div><dt>Region</dt><dd>Southeast</dd></div><div><dt>Product</dt><dd>TV bundle</dd></div><div><dt>Channel</dt><dd>Email</dd></div></dl></article>",
+      "css": ".ds-record { max-width: 390px; padding: 20px 0; border-bottom: 1px solid var(--bt-rule, #d7dadd); color: var(--bt-ink, #111111); font: 400 .76rem/1.48 Geist, sans-serif; } .ds-record span, .ds-record dt { color: var(--bt-muted, #62676d); font-size: .64rem; line-height: 1; } .ds-complaint { display: grid; gap: 6px; margin: 0 0 16px; font-size: .88rem; line-height: 1.55; } .ds-complaint span { color: var(--bt-red-dark, #a6000a); } .ds-record dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; margin: 0; } .ds-record dl div { display: grid; gap: 4px; } .ds-record dd { margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Optical Evidence Desk",
+    "overview": "Backtrace is a bright operations interface with the character of an incident postmortem in progress. White paper, black ink, cool construction rules, and tightly controlled Ciena-inspired red make a large evidence set feel inspectable rather than theatrical. The system is dense, exact, and calm: hierarchy comes from typography, alignment, and rules instead of cards or decoration.\n\nThe world is organized around evidence before interpretation. A complaint field presents symptom proximity, an interpretation rail explains its limits, and a ruled ledger exposes individual records. Visual emphasis must never turn proximity, a customer claim, or an embedding cluster into a verified root cause.",
+    "keyCharacteristics": [
+      "Bright white working surface with black structural anchors",
+      "Condensed operational headings paired with compact, readable body text",
+      "Flat paper and hairline rules instead of elevated cards",
+      "Red reserved for signal, selection, focus, and current state",
+      "Evidence-first responsive records that preserve meaning on narrow screens"
+    ],
+    "rules": [
+      { "name": "The Red Is Signal Rule", "body": "Red is reserved for live attention, current state, focus, or an explicitly labelled claim; it never decorates empty space or implies verified causality.", "section": "colors" },
+      { "name": "The Paper Stays Bright Rule", "body": "Core work surfaces remain white or cool field grey. Do not introduce dark content cards, gradients, glass, or tinted dashboard panels.", "section": "colors" },
+      { "name": "The Condensed Authority Rule", "body": "Use Barlow Condensed for headings and operational identifiers, not paragraphs or dense table evidence.", "section": "typography" },
+      { "name": "The Numbers Align Rule", "body": "Use tabular numerals wherever values are compared vertically or scanned as operational facts.", "section": "typography" },
+      { "name": "The Evidence Topology Rule", "body": "Preserve the sequence complaint field → interpretation rail → complaint ledger. The rail explains the field; it does not compete with it.", "section": "layout" },
+      { "name": "The Mobile Evidence-First Rule", "body": "On narrow screens, lead every record with the complaint itself and retain explicit labels for all metadata.", "section": "layout" },
+      { "name": "The Ruled Paper Rule", "body": "Separate information with shared rules and tonal planes; do not wrap every section in a raised card.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do lead with observable evidence and place interpretation immediately beside or after it.",
+      "Do use red sparingly for current state, focus, claimed-cause signal, and explicit boundaries.",
+      "Do preserve semantic landmarks, captions, headings, labels, and visible keyboard focus.",
+      "Do recompose dense tables into complaint-first labelled records below 520px.",
+      "Do keep synthetic-data provenance visible in the masthead or equivalent page context."
+    ],
+    "donts": [
+      "Don't describe embedding proximity, point color, or a claimed cause as verified root cause.",
+      "Don't introduce gradients, glass effects, glow, shadows, decorative badges, or interchangeable metric-card grids.",
+      "Don't use red as a general brand fill across large surfaces or as proof of certainty.",
+      "Don't compress desktop columns until evidence becomes unreadable; stack or recompose by priority.",
+      "Don't imply that cohort review, remedies, approvals, or other unimplemented actions are available."
+    ]
+  }
+}
