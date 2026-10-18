@@ -15,6 +15,11 @@ node_modules/
 .next/
 apps/web/.env.local
 
+# Local UI review artifacts
+.playwright-mcp/
+.impeccable/review/
+.impeccable/hook.cache.json
+
 # Env / secrets
 .env
 
