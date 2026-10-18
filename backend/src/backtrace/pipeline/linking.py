@@ -292,7 +292,8 @@ def run_linking_stage(session_factory: sessionmaker, run_id: str, params: LinkPa
             cand_id, _ = pass1[c.complaint_id]
             if cand_id is not None:
                 group_vectors.setdefault(group_of[cand_id], []).append(c.vector)
-        centroids = {cand_id: np.mean(group_vectors[group], axis=0) for cand_id, group in group_of.items() if group in group_vectors}
+        group_means = {group: np.mean(vectors, axis=0) for group, vectors in group_vectors.items()}
+        centroids = {cand_id: group_means[group] for cand_id, group in group_of.items() if group in group_means}
 
         final = _assign_pass(
             complaints, all_cands, anomaly_candidates=anomaly_cands, bursts=bursts,
@@ -308,18 +309,16 @@ def run_linking_stage(session_factory: sessionmaker, run_id: str, params: LinkPa
         needs_review = 0
         noise = 0
 
-        members_by_group: dict[frozenset[str], list[tuple[ComplaintCtx, str, float, bool]]] = {}
+        members_by_group: dict[frozenset[str], list[tuple[ComplaintCtx, str, float, bool, dict[str, float]]]] = {}
         no_evidence_by_cluster: dict[str, list[ComplaintCtx]] = {}
 
         for c in complaints:
             cand_id, review = final[c.complaint_id]
             if cand_id is not None:
                 group_key = group_of[cand_id]
-                score = total_score(
-                    score_components(c, by_id[cand_id], anomalies=anomaly_cands, bursts=bursts, centroid=centroids.get(cand_id), params=params),
-                    params.weights,
-                )
-                members_by_group.setdefault(group_key, []).append((c, cand_id, score, review))
+                components = score_components(c, by_id[cand_id], anomalies=anomaly_cands, bursts=bursts, centroid=centroids.get(cand_id), params=params)
+                score = total_score(components, params.weights)
+                members_by_group.setdefault(group_key, []).append((c, cand_id, score, review, components))
                 linked += 1
                 if review:
                     needs_review += 1
@@ -332,7 +331,7 @@ def run_linking_stage(session_factory: sessionmaker, run_id: str, params: LinkPa
             cohort_id = f"cohort-{run_id}-{n}"
             n += 1
             session.add(Cohort(id=cohort_id, run_id=run_id, kind="linked"))
-            for c, cand_id, score, review in members:
+            for c, cand_id, score, review, _ in members:
                 session.add(
                     CohortMember(
                         run_id=run_id, complaint_id=c.complaint_id, cohort_id=cohort_id,
@@ -340,18 +339,13 @@ def run_linking_stage(session_factory: sessionmaker, run_id: str, params: LinkPa
                     )
                 )
 
-            by_candidate: dict[str, list[tuple[ComplaintCtx, float]]] = {}
-            for c, cand_id, score, _ in members:
-                by_candidate.setdefault(cand_id, []).append((c, score))
+            by_candidate: dict[str, list[tuple[float, dict[str, float]]]] = {}
+            for _, cand_id, score, _, components in members:
+                by_candidate.setdefault(cand_id, []).append((score, components))
             for cand_id, entries in by_candidate.items():
                 cand = by_id[cand_id]
                 evidence = {
-                    comp: sum(
-                        1
-                        for c, _ in entries
-                        if score_components(c, cand, anomalies=anomaly_cands, bursts=bursts, centroid=centroids.get(cand_id), params=params)[comp] > 0
-                    )
-                    / len(entries)
+                    comp: sum(1 for _, components in entries if components[comp] > 0) / len(entries)
                     for comp in COMPONENTS
                 }
                 session.add(
@@ -359,7 +353,7 @@ def run_linking_stage(session_factory: sessionmaker, run_id: str, params: LinkPa
                         cohort_id=cohort_id, run_id=run_id,
                         event_id=cand_id if cand.kind == "event" else None,
                         anomaly_id=cand_id if cand.kind == "anomaly" else None,
-                        overlap_score=sum(s for _, s in entries) / len(entries),
+                        overlap_score=sum(s for s, _ in entries) / len(entries),
                         evidence=evidence,
                     )
                 )
