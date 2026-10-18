@@ -51,10 +51,22 @@ def get_job(job_id: int, _user: Annotated[CurrentUser, Depends(current_user)]) -
         return JobOut.model_validate(job)
 
 
+def _latest_run_with_layout(session) -> PipelineRun | None:
+    """A run that's merely enqueued has no layout yet, so it isn't a usable
+    "latest run" — picking it would make the scatter (or any other
+    per-run view) go empty the moment a new run starts."""
+    return session.execute(
+        select(PipelineRun)
+        .where(PipelineRun.run_id.in_(select(ComplaintLayout.run_id).distinct()))
+        .order_by(PipelineRun.started_at.desc())
+        .limit(1)
+    ).scalar_one_or_none()
+
+
 @app.get("/runs/latest")
 def latest_run(_user: Annotated[CurrentUser, Depends(current_user)]) -> RunOut:
     with get_session(os.environ["DATABASE_URL_PIPELINE"]) as session:
-        run = session.execute(select(PipelineRun).order_by(PipelineRun.started_at.desc()).limit(1)).scalar_one_or_none()
+        run = _latest_run_with_layout(session)
         if run is None:
             raise HTTPException(status_code=404, detail="no runs yet")
         return RunOut.model_validate(run)
@@ -86,11 +98,7 @@ def viz_complaints(
     through /complaints, which is capped at 100 rows for a different use."""
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     with get_session(database_url) as session:
-        run = (
-            session.get(PipelineRun, run_id)
-            if run_id
-            else session.execute(select(PipelineRun).order_by(PipelineRun.started_at.desc()).limit(1)).scalar_one_or_none()
-        )
+        run = session.get(PipelineRun, run_id) if run_id else _latest_run_with_layout(session)
         if run is None:
             raise HTTPException(status_code=404, detail="no runs yet")
 

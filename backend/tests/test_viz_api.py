@@ -81,3 +81,24 @@ def test_viz_complaints_returns_points_with_claimed_cause_and_no_eval_fields(cli
 def test_viz_complaints_requires_auth(client):
     response = client.get(f"/viz/complaints?run_id={RUN_ID}")
     assert response.status_code == 401
+
+
+def test_viz_complaints_without_run_id_skips_a_newer_run_with_no_layout_yet(client):
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    newer_run = "test-viz-run-newer"
+    _seed(database_url)
+    try:
+        with get_session(database_url) as session:
+            session.merge(
+                PipelineRun(run_id=newer_run, dataset_profile="dev", dataset_seed=2, config={}, started_at=dt.datetime.now(dt.timezone.utc))
+            )
+            session.commit()
+
+        response = client.get("/viz/complaints", headers={"X-Demo-User": "demo-agent"})
+        assert response.status_code == 200
+        assert response.json()["run_id"] == RUN_ID
+    finally:
+        with get_session(database_url) as session:
+            session.delete(session.get(PipelineRun, newer_run))
+            session.commit()
+        _cleanup(database_url)
