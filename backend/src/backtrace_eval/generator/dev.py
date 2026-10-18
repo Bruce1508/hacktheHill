@@ -191,7 +191,7 @@ def _timestamp(value: dt.datetime) -> str:
 def _affected_customers(cause: CauseConfig, customers: list[dict], nodes_per_region: int) -> list[str]:
     in_region = [c for c in customers if c["region"] == cause.region]
     if cause.kind == "fiber_cut":
-        return [c["id"] for c in in_region if c["node_id"].endswith("-1")]
+        return [c["id"] for c in in_region if c["node_id"] == f"dev-node-{cause.region}-1"]
     if cause.kind == "optical_degradation":
         return [c["id"] for c in in_region]
     if cause.kind == "cancellation_fee":

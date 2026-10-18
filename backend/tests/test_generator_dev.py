@@ -4,7 +4,7 @@ from pathlib import Path
 
 import yaml
 
-from backtrace_eval.generator.dev import DevWorldConfig, _is_misattributed, generate_dev_world, write_dev_world
+from backtrace_eval.generator.dev import CauseConfig, DevWorldConfig, _affected_customers, _is_misattributed, generate_dev_world, write_dev_world
 
 
 CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs/worlds/dev.yaml"
@@ -14,6 +14,16 @@ def smoke_config() -> DevWorldConfig:
     raw = yaml.safe_load(CONFIG_PATH.read_text())
     raw.update(num_customers=120, num_complaints=100, window_days=4)
     return DevWorldConfig.from_dict(raw)
+
+
+def test_fiber_cut_only_affects_the_node_1_customer_not_node_11_or_21():
+    customers = [
+        {"id": "cust-node-1", "region": "north", "node_id": "dev-node-north-1", "segment": "residential"},
+        {"id": "cust-node-11", "region": "north", "node_id": "dev-node-north-11", "segment": "residential"},
+        {"id": "cust-node-21", "region": "north", "node_id": "dev-node-north-21", "segment": "residential"},
+    ]
+    cause = CauseConfig(kind="fiber_cut", region="north", source="x")
+    assert _affected_customers(cause, customers, nodes_per_region=3) == ["cust-node-1"]
 
 
 def test_is_misattributed_only_true_when_claim_names_the_wrong_kind():
