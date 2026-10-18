@@ -7,6 +7,10 @@ import { OrthographicView, type PickingInfo } from "@deck.gl/core";
 import type { VizPoint } from "@/lib/api";
 
 export function ComplaintScatter({ points }: { points: VizPoint[] }) {
+  if (points.length === 0) {
+    return <p className="text-sm text-muted-foreground">No points for this run yet.</p>;
+  }
+
   // Fit the initial view to the point cloud — PCA coordinates have no fixed
   // scale, so a hard-coded zoom would clip or dwarf the points.
   const xs = points.map((p) => p.x);

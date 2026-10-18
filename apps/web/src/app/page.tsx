@@ -14,7 +14,7 @@ export default async function Home() {
 
   return (
     <main className="p-8">
-      {viz ? (
+      {viz && viz.points.length > 0 ? (
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-1">
             {viz.dataset_profile} run {viz.run_id} — {viz.points.length} points{" "}
