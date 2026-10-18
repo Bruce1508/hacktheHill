@@ -193,3 +193,90 @@ class WorkerHeartbeat(Base):
 
     id: Mapped[bool] = mapped_column(primary_key=True, default=True)
     updated_at: Mapped[dt.datetime] = mapped_column(server_default=func.now())
+
+
+class DetectedAnomaly(Base):
+    __tablename__ = "detected_anomalies"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    node_id: Mapped[str | None] = mapped_column(ForeignKey("app.network_nodes.id"), default=None)
+    link_id: Mapped[str | None] = mapped_column(ForeignKey("app.network_links.id"), default=None)
+    metric: Mapped[str]
+    start_at: Mapped[dt.datetime]
+    end_at: Mapped[dt.datetime]
+    peak_score: Mapped[float]
+    method: Mapped[str]  # "rolling_z_v1"
+
+
+class ComplaintBurst(Base):
+    __tablename__ = "complaint_bursts"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    region: Mapped[str]
+    start_at: Mapped[dt.datetime]
+    end_at: Mapped[dt.datetime]
+    complaint_count: Mapped[int]
+    peak_score: Mapped[float]
+
+
+class SymptomCluster(Base):
+    __tablename__ = "symptom_clusters"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    label: Mapped[int]  # HDBSCAN label, >= 0
+    size: Mapped[int]
+    method: Mapped[str]  # "text" | "text+structured"
+
+
+class SymptomClusterMember(Base):
+    __tablename__ = "symptom_cluster_members"
+    __table_args__ = {"schema": "app"}
+
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"), primary_key=True)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"), primary_key=True)
+    cluster_id: Mapped[str | None] = mapped_column(ForeignKey("app.symptom_clusters.id"), default=None)  # null = noise
+
+
+class Cohort(Base):
+    __tablename__ = "cohorts"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    status: Mapped[str] = mapped_column(server_default="proposed")
+    kind: Mapped[str]  # "linked" | "no_linked_evidence"
+    hypothesis: Mapped[str | None] = mapped_column(default=None)
+    hypothesis_citations: Mapped[dict | list | None] = mapped_column(JSON, default=None)
+    confidence: Mapped[float | None] = mapped_column(default=None)
+
+
+class CohortMember(Base):
+    __tablename__ = "cohort_members"
+    __table_args__ = {"schema": "app"}
+
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"), primary_key=True)
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"), primary_key=True)
+    cohort_id: Mapped[str] = mapped_column(ForeignKey("app.cohorts.id"))
+    membership_score: Mapped[float]
+    assigned_by: Mapped[str]  # "batch"
+    needs_review: Mapped[bool]
+
+
+class CohortEventLink(Base):
+    __tablename__ = "cohort_event_links"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    cohort_id: Mapped[str] = mapped_column(ForeignKey("app.cohorts.id"))
+    run_id: Mapped[str] = mapped_column(ForeignKey("app.pipeline_runs.run_id"))
+    event_id: Mapped[str | None] = mapped_column(ForeignKey("app.events.id"), default=None)
+    anomaly_id: Mapped[str | None] = mapped_column(ForeignKey("app.detected_anomalies.id"), default=None)
+    overlap_score: Mapped[float]
+    time_offset_minutes: Mapped[float | None] = mapped_column(default=None)
+    evidence: Mapped[dict] = mapped_column(JSON)
