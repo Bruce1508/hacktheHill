@@ -1,4 +1,17 @@
-from backtrace.llm.providers import split_billable_units
+from types import SimpleNamespace
+
+import pytest
+
+from backtrace.llm.providers import GeminiEmbeddingProvider, split_billable_units
+
+
+def test_embed_batch_raises_if_response_count_does_not_match_input_count():
+    provider = GeminiEmbeddingProvider("gemini-embed", "v1", dimension=3, api_key="fake-key")
+    provider._client = SimpleNamespace(
+        models=SimpleNamespace(embed_content=lambda **_: SimpleNamespace(embeddings=[SimpleNamespace(values=[0.1, 0.2, 0.3])], metadata=None))
+    )
+    with pytest.raises(RuntimeError, match="1 embeddings for 2 inputs"):
+        provider.embed_batch(["first text", "second text"])
 
 
 def test_split_billable_units_sums_to_total():

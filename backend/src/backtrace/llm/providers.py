@@ -171,7 +171,8 @@ class GeminiEmbeddingProvider:
             contents=texts,
             config=types.EmbedContentConfig(output_dimensionality=self.dimension),
         )
-        assert len(resp.embeddings) == len(texts)
+        if len(resp.embeddings) != len(texts):
+            raise RuntimeError(f"embed_content returned {len(resp.embeddings)} embeddings for {len(texts)} inputs")
         if resp.metadata:
             units = split_billable_units(resp.metadata.billable_character_count, texts)
         else:
