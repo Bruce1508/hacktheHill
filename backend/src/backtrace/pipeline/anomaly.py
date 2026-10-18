@@ -3,7 +3,6 @@ previous window of samples per (node_id, link_id) series."""
 
 from __future__ import annotations
 
-import math
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,6 +14,7 @@ from sqlalchemy.orm import sessionmaker
 
 from backtrace.db.models import DetectedAnomaly, Telemetry
 from backtrace.llm.config import AnomalyParams
+from backtrace.pipeline._zscore import zscore
 
 
 @dataclass(frozen=True)
@@ -29,10 +29,7 @@ class Anomaly:
 def _score(window: np.ndarray, value: float, metric: str) -> float:
     mean_prev = window.mean()
     std_prev = window.std()
-    if std_prev < 1e-9:
-        raw_z = 0.0 if value == mean_prev else (math.inf if value > mean_prev else -math.inf)
-    else:
-        raw_z = (value - mean_prev) / std_prev
+    raw_z = zscore(mean_prev, std_prev, value)
     # optical_power_dbm: a drop is the failure mode, not a rise — flip the
     # sign so dropping power scores positive and rising power never fires.
     return -raw_z if metric == "optical_power_dbm" else raw_z

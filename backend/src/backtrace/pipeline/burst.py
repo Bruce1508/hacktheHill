@@ -15,6 +15,7 @@ from sqlalchemy.orm import sessionmaker
 
 from backtrace.db.models import Complaint, ComplaintBurst, ComplaintFeatures
 from backtrace.llm.config import BurstParams
+from backtrace.pipeline._zscore import zscore
 
 
 @dataclass(frozen=True)
@@ -29,12 +30,6 @@ class Burst:
 def _bucket_index(t: datetime, window_start: datetime, bucket_minutes: int, n_buckets: int) -> int:
     idx = int((t - window_start).total_seconds() // (bucket_minutes * 60))
     return min(max(idx, 0), n_buckets - 1)
-
-
-def _z(mean: float, std: float, value: float) -> float:
-    if std < 1e-9:
-        return 0.0 if value == mean else math.inf
-    return (value - mean) / std
 
 
 def detect_bursts(
@@ -63,7 +58,7 @@ def detect_bursts(
         for i in range(n_buckets):
             if len(history) >= params.baseline_buckets:
                 baseline = np.array(history[-params.baseline_buckets :])
-                score = _z(baseline.mean(), baseline.std(), counts[i])
+                score = zscore(baseline.mean(), baseline.std(), counts[i])
                 scores[i] = score
                 flagged[i] = counts[i] >= params.min_count and score >= params.z_threshold
             if not flagged[i]:
@@ -101,16 +96,15 @@ def run_burst_stage(session_factory: sessionmaker, run_id: str, params: BurstPar
             .where(ComplaintFeatures.run_id == run_id)
         ).all()
 
-        if not rows:
-            return {"bursts": 0}
+        bursts: list[Burst] = []
+        if rows:
+            received_at_by_region: dict[str, list[datetime]] = {}
+            for region, received_at in rows:
+                received_at_by_region.setdefault(region, []).append(received_at)
 
-        received_at_by_region: dict[str, list[datetime]] = {}
-        for region, received_at in rows:
-            received_at_by_region.setdefault(region, []).append(received_at)
-
-        window_start = min(received_at for _, received_at in rows)
-        window_end = max(received_at for _, received_at in rows)
-        bursts = detect_bursts(received_at_by_region, window_start=window_start, window_end=window_end, params=params)
+            window_start = min(received_at for _, received_at in rows)
+            window_end = max(received_at for _, received_at in rows)
+            bursts = detect_bursts(received_at_by_region, window_start=window_start, window_end=window_end, params=params)
 
         session.execute(delete(ComplaintBurst).where(ComplaintBurst.run_id == run_id))
         for n, burst in enumerate(bursts):
