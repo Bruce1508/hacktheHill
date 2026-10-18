@@ -15,7 +15,11 @@ from backtrace.db.models import Job, WorkerHeartbeat
 from backtrace.db.session import make_session_factory
 from backtrace.llm.config import PipelineConfig
 from backtrace.llm.providers import FakeEmbeddingProvider, FakeExtractionProvider, GeminiEmbeddingProvider, GeminiExtractionProvider
+from backtrace.pipeline.anomaly import run_anomaly_stage
+from backtrace.pipeline.burst import run_burst_stage
+from backtrace.pipeline.clustering import run_clustering_stage
 from backtrace.pipeline.layout import run_layout_stage
+from backtrace.pipeline.linking import run_linking_stage
 from backtrace.pipeline.stages import run_embedding_stage, run_extraction_stage
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -69,7 +73,7 @@ def _run_job_with_live_heartbeat(session_factory, config: PipelineConfig, extrac
 
 
 def _run_job(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, job: Job) -> None:
-    stages = ("extraction", "embedding", "layout") if job.type == "pipeline.run" else (job.stage,)
+    stages = ("extraction", "embedding", "anomaly", "burst", "clustering", "linking", "layout") if job.type == "pipeline.run" else (job.stage,)
     for stage in stages:
         if stage == "extraction":
             result = run_extraction_stage(
@@ -91,6 +95,14 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
                 max_calls_per_minute=config.max_calls_per_minute,
                 cache_only=config.cache_only,
             )
+        elif stage == "anomaly":
+            result = run_anomaly_stage(session_factory, job.run_id, config.anomaly)
+        elif stage == "burst":
+            result = run_burst_stage(session_factory, job.run_id, config.burst)
+        elif stage == "clustering":
+            result = run_clustering_stage(session_factory, job.run_id, config.clustering)
+        elif stage == "linking":
+            result = run_linking_stage(session_factory, job.run_id, config.linking)
         elif stage == "layout":
             result = run_layout_stage(session_factory, job.run_id)
         else:
