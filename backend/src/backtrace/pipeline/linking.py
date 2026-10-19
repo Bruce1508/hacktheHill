@@ -351,8 +351,8 @@ def run_linking_stage(session_factory: sessionmaker, run_id: str, params: LinkPa
                 session.add(
                     CohortEventLink(
                         cohort_id=cohort_id, run_id=run_id,
-                        event_id=cand_id if cand.kind == "event" else None,
-                        anomaly_id=cand_id if cand.kind == "anomaly" else None,
+                        event_id=cand_id.removeprefix("event-") if cand.kind == "event" else None,
+                        anomaly_id=cand_id.removeprefix("anomaly-") if cand.kind == "anomaly" else None,
                         overlap_score=sum(s for s, _ in entries) / len(entries),
                         evidence=evidence,
                     )
