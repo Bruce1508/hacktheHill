@@ -6,6 +6,7 @@ __pycache__/
 .pytest_cache/
 fixtures/dev/
 fixtures/dev.bak-templated-text/
+reports/
 
 # Claude-mem plugin (local, machine-generated)
 .windsurf/
