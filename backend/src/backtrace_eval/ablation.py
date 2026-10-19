@@ -80,6 +80,9 @@ def run_ablation(database_url_eval: str, run_id: str, params: ClusterParams) -> 
             .where(ComplaintEmbedding.run_id == run_id)
             .order_by(Complaint.complaint_id)
         ).all()
+        if not rows:
+            raise ValueError(f"no complaint embeddings found for run_id={run_id!r}")
+
         complaint_ids = [row[0] for row in rows]
         vectors = np.array([row[3] for row in rows], dtype=float)
 
