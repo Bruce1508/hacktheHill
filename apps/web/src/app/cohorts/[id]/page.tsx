@@ -1,8 +1,9 @@
-import { getCohort, getCohortEvidence } from "@/lib/api";
+import { EvidenceTimeline } from "@/components/evidence-timeline";
+import { getCohort, getCohortEvidence, getCohortTimeline } from "@/lib/api";
 
 export default async function CohortDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [cohort, evidence] = await Promise.all([getCohort(id), getCohortEvidence(id)]);
+  const [cohort, evidence, timeline] = await Promise.all([getCohort(id), getCohortEvidence(id), getCohortTimeline(id)]);
 
   return (
     <main className="p-8 space-y-6">
@@ -16,8 +17,8 @@ export default async function CohortDetailPage({ params }: { params: Promise<{ i
           <p>{cohort.hypothesis}</p>
         </div>
       )}
-      {/* Task 11 renders <EvidenceTimeline evidence={evidence} /> here */}
-      {/* Task 12 renders the remedy/letter/gate/approve panel here */}
+      <EvidenceTimeline complaintBuckets={timeline.complaint_buckets} anomalyWindows={timeline.anomaly_windows} />
+      {/* Task 12 renders the remedy/letter/gate/approve panel here, using `evidence` (hypothesis citations, sample complaint ids) */}
     </main>
   );
 }

@@ -6,9 +6,9 @@ from sqlalchemy import func, select
 
 from backtrace.api.auth import CurrentUser, current_user
 from backtrace.audit import append_audit
-from backtrace.contracts.evidence import CohortEvidenceOut, CohortListOut, CohortOut
+from backtrace.contracts.evidence import AnomalyWindowOut, CohortEvidenceOut, CohortListOut, CohortOut, CohortTimelineOut, ComplaintBucketOut
 from backtrace.contracts.remedy import RemedyComputeOut
-from backtrace.db.models import Cohort, CohortMember
+from backtrace.db.models import Cohort, CohortEventLink, CohortMember, Complaint, DetectedAnomaly
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.pipeline.hypothesis import build_evidence_pack
 from backtrace.remedy.engine import compute_cohort_remedies
@@ -16,6 +16,7 @@ from backtrace.remedy.engine import compute_cohort_remedies
 router = APIRouter()
 
 REVIEW_ROLES = {"team_lead", "compliance"}
+TIMELINE_BUCKET_MINUTES = 15
 
 
 def _require_review_role(user: CurrentUser) -> None:
@@ -56,6 +57,32 @@ def get_cohort_evidence(cohort_id: str, _user: Annotated[CurrentUser, Depends(cu
             hypothesis_citations=cohort.hypothesis_citations, linked_event_ids=pack.event_ids,
             linked_anomaly_ids=pack.anomaly_ids, sample_complaint_ids=pack.complaint_ids[:5],
         )
+
+
+@router.get("/cohorts/{cohort_id}/timeline")
+def get_cohort_timeline(cohort_id: str, _user: Annotated[CurrentUser, Depends(current_user)]) -> CohortTimelineOut:
+    with get_session(os.environ["DATABASE_URL_PIPELINE"]) as session:
+        cohort = session.get(Cohort, cohort_id)
+        if cohort is None:
+            raise HTTPException(status_code=404, detail="cohort not found")
+
+        complaint_ids = [row[0] for row in session.execute(select(CohortMember.complaint_id).where(CohortMember.cohort_id == cohort_id))]
+        received_ats = [
+            row[0] for row in session.execute(select(Complaint.received_at).where(Complaint.complaint_id.in_(complaint_ids)))
+        ]
+        buckets: dict = {}
+        for received_at in received_ats:
+            bucket_start = received_at.replace(minute=(received_at.minute // TIMELINE_BUCKET_MINUTES) * TIMELINE_BUCKET_MINUTES, second=0, microsecond=0)
+            buckets[bucket_start] = buckets.get(bucket_start, 0) + 1
+        complaint_buckets = [ComplaintBucketOut(bucket_start=k.isoformat(), count=v) for k, v in sorted(buckets.items())]
+
+        links = session.execute(select(CohortEventLink).where(CohortEventLink.cohort_id == cohort_id, CohortEventLink.anomaly_id.isnot(None))).scalars().all()
+        anomaly_windows = []
+        for link in links:
+            anomaly = session.get(DetectedAnomaly, link.anomaly_id)
+            anomaly_windows.append(AnomalyWindowOut(anomaly_id=anomaly.id, metric=anomaly.metric, start_at=anomaly.start_at.isoformat(), end_at=anomaly.end_at.isoformat(), peak_score=anomaly.peak_score))
+
+        return CohortTimelineOut(cohort_id=cohort_id, complaint_buckets=complaint_buckets, anomaly_windows=anomaly_windows)
 
 
 @router.post("/cohorts/{cohort_id}/confirm")

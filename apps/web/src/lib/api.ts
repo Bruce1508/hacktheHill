@@ -72,6 +72,27 @@ export async function getCohortEvidence(id: string): Promise<CohortEvidenceOut> 
   return res.json();
 }
 
+export type ComplaintBucketOut = { bucket_start: string; count: number };
+
+export type AnomalyWindowOut = { anomaly_id: string; metric: string; start_at: string; end_at: string; peak_score: number };
+
+export type CohortTimelineOut = {
+  cohort_id: string;
+  complaint_buckets: ComplaintBucketOut[];
+  anomaly_windows: AnomalyWindowOut[];
+};
+
+export async function getCohortTimeline(id: string): Promise<CohortTimelineOut> {
+  const res = await fetch(`${API_URL}/cohorts/${id}/timeline`, {
+    cache: "no-store",
+    headers: API_HEADERS,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch cohort timeline: ${res.status}`);
+  }
+  return res.json();
+}
+
 export type Complaint = {
   complaint_id: string;
   customer_id: string;
