@@ -71,6 +71,7 @@ class PipelineConfig:
     extraction: ModelPin
     embedding: EmbeddingPin
     hypothesis: ModelPin
+    letter_drafting: ModelPin
     max_calls_per_run: int
     max_concurrent_calls: int
     max_calls_per_minute: int
@@ -89,6 +90,7 @@ class PipelineConfig:
             extraction=ModelPin(**raw["extraction"]),
             embedding=EmbeddingPin(**raw["embedding"]),
             hypothesis=ModelPin(**raw["hypothesis"]),
+            letter_drafting=ModelPin(**raw["letter_drafting"]),
             max_calls_per_run=int(raw["max_calls_per_run"]),
             max_concurrent_calls=int(raw["max_concurrent_calls"]),
             max_calls_per_minute=int(raw["max_calls_per_minute"]),

@@ -5,3 +5,8 @@ class RemedyComputeOut(BaseModel):
     cohort_id: str
     computed: int
     routed_to_individual_review: int
+
+
+class LetterDraftOut(BaseModel):
+    remedy_id: str
+    drafted: bool

@@ -47,3 +47,20 @@ HYPOTHESIS_PROMPT_V1 = (
     "Averaged linking-score components: {score_components}\n"
     "Sample complaint texts:\n{sample_texts}"
 )
+
+# §10.2: the amount, cause, and issues are pre-computed and fixed — the model
+# only drafts prose around them. It must never state a different amount than
+# the one given, and never promise anything beyond the credit itself (no
+# extra compensation, no guarantees, no additional commitments) — the Gate
+# (Task 8) re-checks both of these against the letter text.
+LETTER_PROMPT_V1 = (
+    "Write a short, professional customer-service letter responding to a "
+    "service complaint. Use ONLY the facts given below. State the credit "
+    "amount exactly as given — do not state any other amount. Do not "
+    "promise anything beyond this credit (no additional compensation, no "
+    "guarantees, no other commitments).\n\n"
+    "Credit amount: ${amount}\n"
+    "Cause: {claimed_cause}\n"
+    "Issues reported: {issues}\n\n"
+    "Return only the letter text."
+)
