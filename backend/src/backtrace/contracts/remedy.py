@@ -1,3 +1,5 @@
+import datetime as dt
+
 from pydantic import BaseModel
 
 
@@ -10,3 +12,11 @@ class RemedyComputeOut(BaseModel):
 class LetterDraftOut(BaseModel):
     remedy_id: str
     drafted: bool
+
+
+class ApprovalOut(BaseModel):
+    remedy_id: str
+    decision: str
+    approver_user_id: str
+    role: str
+    decided_at: dt.datetime

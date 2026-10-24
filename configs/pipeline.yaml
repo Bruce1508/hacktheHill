@@ -73,3 +73,7 @@ linking:
   ambiguity_margin: 0.5
   lag_max_minutes: 720
   temporal_tau_minutes: 180
+
+# §12: remedies above this amount require the `compliance` role to approve,
+# not just `team_lead`.
+approval_threshold_amount: 1000.00

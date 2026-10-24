@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 from typing import Mapping
 
@@ -89,6 +90,7 @@ class PipelineConfig:
     burst: BurstParams
     clustering: ClusterParams
     linking: LinkParams
+    approval_threshold_amount: Decimal
 
     @classmethod
     def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> PipelineConfig:
@@ -135,4 +137,5 @@ class PipelineConfig:
                 lag_max_minutes=int(raw["linking"]["lag_max_minutes"]),
                 temporal_tau_minutes=float(raw["linking"]["temporal_tau_minutes"]),
             ),
+            approval_threshold_amount=Decimal(str(raw["approval_threshold_amount"])),
         )
