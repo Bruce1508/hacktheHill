@@ -27,5 +27,5 @@ apps/web/.env.local
 # OS
 .DS_Store
 
-# Claude Code (personal overrides)
-.claude/settings.local.json
+# Claude Code (personal overrides, worktrees, scratch)
+.claude/
