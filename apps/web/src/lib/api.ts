@@ -1,3 +1,77 @@
+const API_HEADERS = { "X-Demo-User": "demo-agent" };
+
+export type RunOut = {
+  run_id: string;
+  dataset_profile: string;
+  dataset_seed: number;
+  started_at: string;
+  finished_at: string | null;
+};
+
+export async function fetchLatestRun(): Promise<RunOut> {
+  const res = await fetch(`${API_URL}/runs/latest`, {
+    cache: "no-store",
+    headers: API_HEADERS,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch latest run: ${res.status}`);
+  }
+  return res.json();
+}
+
+export type CohortOut = {
+  id: string;
+  run_id: string;
+  status: string;
+  kind: string;
+  hypothesis: string | null;
+  confidence: number | null;
+  member_count: number;
+};
+
+export type CohortEvidenceOut = {
+  cohort_id: string;
+  score_components: Record<string, number>;
+  hypothesis: string | null;
+  hypothesis_citations: { complaint_ids: string[]; event_ids: string[]; anomaly_ids: string[] } | null;
+  linked_event_ids: string[];
+  linked_anomaly_ids: string[];
+  sample_complaint_ids: string[];
+};
+
+export async function listCohorts(runId: string): Promise<{ cohorts: CohortOut[] }> {
+  const res = await fetch(`${API_URL}/cohorts?run_id=${encodeURIComponent(runId)}`, {
+    cache: "no-store",
+    headers: API_HEADERS,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch cohorts: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function getCohort(id: string): Promise<CohortOut> {
+  const res = await fetch(`${API_URL}/cohorts/${id}`, {
+    cache: "no-store",
+    headers: API_HEADERS,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch cohort: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function getCohortEvidence(id: string): Promise<CohortEvidenceOut> {
+  const res = await fetch(`${API_URL}/cohorts/${id}/evidence`, {
+    cache: "no-store",
+    headers: API_HEADERS,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to fetch cohort evidence: ${res.status}`);
+  }
+  return res.json();
+}
+
 export type Complaint = {
   complaint_id: string;
   customer_id: string;
