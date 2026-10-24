@@ -57,3 +57,28 @@ def test_run_hypothesis_stage_accepts_valid_citations(database_url_pipeline):
         cohort = session.get(Cohort, COHORT_ID)
         assert cohort.hypothesis is not None
         assert cohort.hypothesis_citations["complaint_ids"] == ["hyp-complaint-1"]
+
+
+def test_run_hypothesis_stage_clears_stale_hypothesis_on_rerun_rejection(database_url_pipeline):
+    """A prior run accepted a hypothesis citing hyp-complaint-1. On rerun,
+    cohort membership has changed such that the new citation check rejects
+    the new output — the old accepted hypothesis must not survive on the
+    row (§8.2 step 8's "never shown" guarantee must hold on rerun, not just
+    on first run)."""
+    _seed(database_url_pipeline)
+    with get_session(database_url_pipeline) as session:
+        cohort = session.get(Cohort, COHORT_ID)
+        cohort.hypothesis = "Stale hypothesis from a previous run."
+        cohort.hypothesis_citations = {"complaint_ids": ["hyp-complaint-1"], "event_ids": [], "anomaly_ids": ["hyp-anomaly-1"]}
+        cohort.confidence = 1.0
+        session.commit()
+
+    session_factory = make_session_factory(database_url_pipeline)
+    provider = FakeHypothesisProvider(fake_cited_complaint_ids=["not-a-real-id"])
+    result = run_hypothesis_stage(session_factory, RUN_ID, provider)
+    assert result["rejected"] == 1
+    with get_session(database_url_pipeline) as session:
+        cohort = session.get(Cohort, COHORT_ID)
+        assert cohort.hypothesis is None
+        assert cohort.hypothesis_citations is None
+        assert cohort.confidence is None

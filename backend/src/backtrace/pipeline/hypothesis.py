@@ -92,6 +92,15 @@ def run_hypothesis_stage(session_factory: sessionmaker, run_id: str, provider: H
             output = provider.generate(pack)
             if not _validate_citations(pack, output):
                 rejected += 1
+                # Clear any stale accepted hypothesis from a prior run: if
+                # cohort membership changed and now rejects, the old citation
+                # may no longer be in this run's pack — "never shown" must
+                # hold on rerun, not just on first run (idempotency).
+                cohort = session.get(Cohort, cohort_id)
+                cohort.hypothesis = None
+                cohort.hypothesis_citations = None
+                cohort.confidence = None
+                session.commit()
                 continue
             accepted += 1
             cohort = session.get(Cohort, cohort_id)
