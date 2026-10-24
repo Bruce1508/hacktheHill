@@ -24,6 +24,10 @@ embedding:
   output_dimensionality: 768 # must match app.complaint_embeddings.embedding column (migration 0003)
   prompt_version: embedding-v1
 
+hypothesis:
+  model_id: gemini-flash-lite-latest
+  prompt_version: hypothesis-v1
+
 # Guardrail for a full dev run (~1,600 complaints => ~1,600 extraction +
 # 1,600 embedding calls on a cold cache). Raise only with a deliberate reason.
 max_calls_per_run: 5000

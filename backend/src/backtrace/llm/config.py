@@ -70,6 +70,7 @@ class PipelineConfig:
     generation: ModelPin
     extraction: ModelPin
     embedding: EmbeddingPin
+    hypothesis: ModelPin
     max_calls_per_run: int
     max_concurrent_calls: int
     max_calls_per_minute: int
@@ -87,6 +88,7 @@ class PipelineConfig:
             generation=ModelPin(**raw["generation"]),
             extraction=ModelPin(**raw["extraction"]),
             embedding=EmbeddingPin(**raw["embedding"]),
+            hypothesis=ModelPin(**raw["hypothesis"]),
             max_calls_per_run=int(raw["max_calls_per_run"]),
             max_concurrent_calls=int(raw["max_concurrent_calls"]),
             max_calls_per_minute=int(raw["max_calls_per_minute"]),

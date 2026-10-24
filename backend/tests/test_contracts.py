@@ -1,6 +1,6 @@
 # backend/tests/test_contracts.py
 from backtrace.contracts.complaints import ComplaintOut
-from backtrace.contracts.evidence import EvidencePackStub
+from backtrace.contracts.evidence import EvidencePack
 from backtrace.contracts.extraction import ComplaintExtraction
 
 
@@ -30,6 +30,6 @@ def test_complaint_out_serializes_from_orm_style_object():
     assert dto.complaint_id == "c1"
 
 
-def test_evidence_pack_stub_round_trips_json():
-    pack = EvidencePackStub(cohort_id="coh1", complaint_ids=["c1"], event_ids=["e1"], anomaly_ids=[])
-    assert EvidencePackStub.model_validate_json(pack.model_dump_json()) == pack
+def test_evidence_pack_round_trips_json():
+    pack = EvidencePack(cohort_id="coh1", complaint_ids=["c1"], event_ids=["e1"], anomaly_ids=[], score_components={}, sample_complaint_texts=[])
+    assert EvidencePack.model_validate_json(pack.model_dump_json()) == pack
