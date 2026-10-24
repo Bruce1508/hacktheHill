@@ -64,3 +64,15 @@ LETTER_PROMPT_V1 = (
     "Issues reported: {issues}\n\n"
     "Return only the letter text."
 )
+
+# §10.3: the one LLM check in the Consistency Gate, run only after every pure
+# rule has already passed. A strict yes/no — no partial credit, no reasoning
+# requested back, since the caller only checks for a leading "yes".
+GATE_ISSUES_PROMPT_V1 = (
+    "You are checking a customer-service letter for completeness. Below is "
+    "the letter and a list of issues the customer reported. Answer with "
+    "exactly one word, \"yes\" or \"no\": does the letter address every "
+    "issue listed?\n\n"
+    "Letter:\n{letter_text}\n\n"
+    "Issues: {issues}"
+)

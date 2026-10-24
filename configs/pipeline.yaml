@@ -32,6 +32,11 @@ letter_drafting:
   model_id: gemini-flash-lite-latest
   prompt_version: letter-v1
 
+gate:
+  model_id: gemini-flash-lite-latest
+  prompt_version: gate-v1
+  forbidden_phrases: [guarantee, lifetime, unlimited]
+
 # Guardrail for a full dev run (~1,600 complaints => ~1,600 extraction +
 # 1,600 embedding calls on a cold cache). Raise only with a deliberate reason.
 max_calls_per_run: 5000

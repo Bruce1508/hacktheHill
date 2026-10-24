@@ -57,6 +57,13 @@ class ClusterParams:
 
 
 @dataclass(frozen=True)
+class GateConfig:
+    model_id: str
+    prompt_version: str
+    forbidden_phrases: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class LinkParams:
     weights: Mapping[str, float]
     threshold: float
@@ -72,6 +79,7 @@ class PipelineConfig:
     embedding: EmbeddingPin
     hypothesis: ModelPin
     letter_drafting: ModelPin
+    gate: GateConfig
     max_calls_per_run: int
     max_concurrent_calls: int
     max_calls_per_minute: int
@@ -91,6 +99,11 @@ class PipelineConfig:
             embedding=EmbeddingPin(**raw["embedding"]),
             hypothesis=ModelPin(**raw["hypothesis"]),
             letter_drafting=ModelPin(**raw["letter_drafting"]),
+            gate=GateConfig(
+                model_id=raw["gate"]["model_id"],
+                prompt_version=raw["gate"]["prompt_version"],
+                forbidden_phrases=tuple(raw["gate"]["forbidden_phrases"]),
+            ),
             max_calls_per_run=int(raw["max_calls_per_run"]),
             max_concurrent_calls=int(raw["max_concurrent_calls"]),
             max_calls_per_minute=int(raw["max_calls_per_minute"]),
