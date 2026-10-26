@@ -1,3 +1,4 @@
+import { CohortActionPanel } from "@/components/cohort-action-panel";
 import { EvidenceTimeline } from "@/components/evidence-timeline";
 import { getCohort, getCohortEvidence, getCohortTimeline } from "@/lib/api";
 
@@ -18,7 +19,7 @@ export default async function CohortDetailPage({ params }: { params: Promise<{ i
         </div>
       )}
       <EvidenceTimeline complaintBuckets={timeline.complaint_buckets} anomalyWindows={timeline.anomaly_windows} />
-      {/* Task 12 renders the remedy/letter/gate/approve panel here, using `evidence` (hypothesis citations, sample complaint ids) */}
+      <CohortActionPanel cohortId={cohort.id} />
     </main>
   );
 }

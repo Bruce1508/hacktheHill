@@ -145,3 +145,64 @@ export async function fetchVizComplaints(): Promise<VizComplaints | null> {
   }
   return res.json();
 }
+
+// Action-panel fetchers (Task 12): no hardcoded X-Demo-User header, so the
+// `demo_user` cookie set by the DemoUserSwitcher governs identity on the API
+// (api/auth.py::current_user reads the header first, falling back to the
+// cookie — omitting the header here is required for user-switching to work).
+// `credentials: "include"` sends that cookie cross-origin to the API.
+
+export async function confirmCohort(id: string): Promise<CohortOut> {
+  const res = await fetch(`${API_URL}/cohorts/${id}/confirm`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to confirm cohort: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function runCohortRemedy(id: string, policyRuleId: string): Promise<{ cohort_id: string; computed: number; routed_to_individual_review: number; remedy_ids: string[] }> {
+  const res = await fetch(`${API_URL}/cohorts/${id}/remedy?policy_rule_id=${encodeURIComponent(policyRuleId)}`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to compute remedy: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function draftLetter(remedyId: string): Promise<{ remedy_id: string; drafted: boolean }> {
+  const res = await fetch(`${API_URL}/remedies/${remedyId}/drafts`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to draft letter: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function runGate(remedyId: string): Promise<Record<string, unknown>> {
+  const res = await fetch(`${API_URL}/remedies/${remedyId}/gate`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to run gate: ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function approveRemedy(remedyId: string): Promise<{ remedy_id: string; decision: string; approver_user_id: string; role: string; decided_at: string }> {
+  const res = await fetch(`${API_URL}/remedies/${remedyId}/approve`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to approve remedy: ${res.status}`);
+  }
+  return res.json();
+}
