@@ -280,3 +280,69 @@ class CohortEventLink(Base):
     overlap_score: Mapped[float]
     time_offset_minutes: Mapped[float | None] = mapped_column(default=None)
     evidence: Mapped[dict] = mapped_column(JSON)
+
+
+class RemedyPolicy(Base):
+    __tablename__ = "remedy_policies"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    rule_type: Mapped[str]  # "outage_credit" | "overcharge_refund"
+    config: Mapped[dict] = mapped_column(JSON)
+    version: Mapped[int]
+
+
+class Remedy(Base):
+    __tablename__ = "remedies"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    cohort_id: Mapped[str] = mapped_column(ForeignKey("app.cohorts.id"))
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"))
+    amount: Mapped[Decimal] = mapped_column(Numeric)
+    policy_rule_id: Mapped[str] = mapped_column(ForeignKey("app.remedy_policies.id"))
+    policy_version: Mapped[int]
+    rationale: Mapped[str]
+
+
+class Letter(Base):
+    __tablename__ = "letters"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    remedy_id: Mapped[str] = mapped_column(ForeignKey("app.remedies.id"))
+    complaint_id: Mapped[str] = mapped_column(ForeignKey("app.complaints.complaint_id"))
+    draft: Mapped[str]
+    prompt_version: Mapped[str]
+    gate_result: Mapped[dict | None] = mapped_column(JSON, default=None)
+
+
+class Approval(Base):
+    __tablename__ = "approvals"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[str] = mapped_column(primary_key=True)
+    remedy_id: Mapped[str] = mapped_column(ForeignKey("app.remedies.id"))
+    approver_user_id: Mapped[str]
+    role: Mapped[str]
+    auth_mode: Mapped[str]
+    mfa_used: Mapped[bool] = mapped_column(default=False)
+    decision: Mapped[str]  # "approved" | "rejected"
+    decided_at: Mapped[dt.datetime]
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_log"
+    __table_args__ = {"schema": "app"}
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    actor_user_id: Mapped[str]
+    role: Mapped[str]
+    auth_mode: Mapped[str]
+    action: Mapped[str]
+    target_type: Mapped[str]
+    target_id: Mapped[str]
+    before: Mapped[dict] = mapped_column(JSON)
+    after: Mapped[dict] = mapped_column(JSON)
+    prev_hash: Mapped[str | None] = mapped_column(default=None)
+    hash: Mapped[str]
