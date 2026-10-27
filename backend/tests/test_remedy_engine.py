@@ -57,6 +57,7 @@ def test_compute_cohort_remedies_skips_vulnerable_member(database_url_pipeline):
 
         assert result["computed"] == 1
         assert result["routed_to_individual_review"] == 1
+        assert result["remedy_ids"] == [f"{COHORT_ID}-eng-complaint-1"]
         with get_session(database_url_pipeline) as session:
             remedies = session.query(Remedy).filter(Remedy.cohort_id == COHORT_ID).all()
             assert len(remedies) == 1

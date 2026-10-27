@@ -37,6 +37,7 @@ def compute_cohort_remedies(session_factory: sessionmaker, cohort_id: str, polic
         session.query(Remedy).filter(Remedy.cohort_id == cohort_id).delete()  # idempotent re-run
 
         computed = routed = 0
+        remedy_ids: list[str] = []
         member_rows = session.execute(select(CohortMember.complaint_id).where(CohortMember.cohort_id == cohort_id)).all()
         for (complaint_id,) in member_rows:
             complaint = session.get(Complaint, complaint_id)
@@ -49,7 +50,9 @@ def compute_cohort_remedies(session_factory: sessionmaker, cohort_id: str, polic
             if result is None:
                 routed += 1
                 continue
-            session.add(Remedy(id=f"{cohort_id}-{complaint_id}", cohort_id=cohort_id, complaint_id=complaint_id, amount=result.amount, policy_rule_id=result.policy_rule_id, policy_version=result.policy_version, rationale=result.rationale))
+            remedy_id = f"{cohort_id}-{complaint_id}"
+            session.add(Remedy(id=remedy_id, cohort_id=cohort_id, complaint_id=complaint_id, amount=result.amount, policy_rule_id=result.policy_rule_id, policy_version=result.policy_version, rationale=result.rationale))
+            remedy_ids.append(remedy_id)
             computed += 1
         session.commit()
-    return {"computed": computed, "routed_to_individual_review": routed}
+    return {"computed": computed, "routed_to_individual_review": routed, "remedy_ids": remedy_ids}

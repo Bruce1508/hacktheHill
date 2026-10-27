@@ -45,3 +45,22 @@ class CohortEvidenceOut(BaseModel):
     linked_event_ids: list[str]
     linked_anomaly_ids: list[str]
     sample_complaint_ids: list[str]
+
+
+class ComplaintBucketOut(BaseModel):
+    bucket_start: str
+    count: int
+
+
+class AnomalyWindowOut(BaseModel):
+    anomaly_id: str
+    metric: str
+    start_at: str
+    end_at: str
+    peak_score: float
+
+
+class CohortTimelineOut(BaseModel):
+    cohort_id: str
+    complaint_buckets: list[ComplaintBucketOut]
+    anomaly_windows: list[AnomalyWindowOut]

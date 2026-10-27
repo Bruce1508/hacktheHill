@@ -7,6 +7,7 @@ class RemedyComputeOut(BaseModel):
     cohort_id: str
     computed: int
     routed_to_individual_review: int
+    remedy_ids: list[str]
 
 
 class LetterDraftOut(BaseModel):
