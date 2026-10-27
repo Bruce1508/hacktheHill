@@ -14,10 +14,11 @@ from backtrace.db import jobs
 from backtrace.db.models import Job, WorkerHeartbeat
 from backtrace.db.session import make_session_factory
 from backtrace.llm.config import PipelineConfig
-from backtrace.llm.providers import FakeEmbeddingProvider, FakeExtractionProvider, GeminiEmbeddingProvider, GeminiExtractionProvider
+from backtrace.llm.providers import FakeEmbeddingProvider, FakeExtractionProvider, GeminiEmbeddingProvider, GeminiExtractionProvider, GeminiHypothesisProvider
 from backtrace.pipeline.anomaly import run_anomaly_stage
 from backtrace.pipeline.burst import run_burst_stage
 from backtrace.pipeline.clustering import run_clustering_stage
+from backtrace.pipeline.hypothesis import FakeHypothesisProvider, run_hypothesis_stage
 from backtrace.pipeline.layout import run_layout_stage
 from backtrace.pipeline.linking import run_linking_stage
 from backtrace.pipeline.stages import run_embedding_stage, run_extraction_stage
@@ -32,10 +33,15 @@ STALE_CHECK_INTERVAL_SECONDS = 60
 
 def _build_providers(config: PipelineConfig, use_fake: bool):
     if use_fake:
-        return FakeExtractionProvider(), FakeEmbeddingProvider(dimension=config.embedding.output_dimensionality)
+        return (
+            FakeExtractionProvider(),
+            FakeEmbeddingProvider(dimension=config.embedding.output_dimensionality),
+            FakeHypothesisProvider(),
+        )
     return (
         GeminiExtractionProvider(config.extraction.model_id, config.extraction.prompt_version),
         GeminiEmbeddingProvider(config.embedding.model_id, config.embedding.prompt_version, config.embedding.output_dimensionality),
+        GeminiHypothesisProvider(config.hypothesis.model_id, config.hypothesis.prompt_version),
     )
 
 
@@ -52,7 +58,7 @@ def _heartbeat_and_touch_job(session_factory, job_id: int) -> None:
         jobs.touch_running(session, job_id)
 
 
-def _run_job_with_live_heartbeat(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, job: Job) -> None:
+def _run_job_with_live_heartbeat(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, hypothesis_provider, job: Job) -> None:
     """A job can run for hours (many Gemini calls). Without this, the outer
     loop's heartbeat/stale-check only run between jobs, so /health reports
     the worker dead and a second worker's recover_stale requeues the still-
@@ -66,14 +72,14 @@ def _run_job_with_live_heartbeat(session_factory, config: PipelineConfig, extrac
     thread = threading.Thread(target=keep_alive, daemon=True)
     thread.start()
     try:
-        _run_job(session_factory, config, extraction_provider, embedding_provider, job)
+        _run_job(session_factory, config, extraction_provider, embedding_provider, hypothesis_provider, job)
     finally:
         stop.set()
         thread.join()
 
 
-def _run_job(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, job: Job) -> None:
-    stages = ("extraction", "embedding", "anomaly", "burst", "clustering", "linking", "layout") if job.type == "pipeline.run" else (job.stage,)
+def _run_job(session_factory, config: PipelineConfig, extraction_provider, embedding_provider, hypothesis_provider, job: Job) -> None:
+    stages = ("extraction", "embedding", "anomaly", "burst", "clustering", "linking", "hypothesis", "layout") if job.type == "pipeline.run" else (job.stage,)
     for stage in stages:
         if stage == "extraction":
             result = run_extraction_stage(
@@ -103,6 +109,8 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
             result = run_clustering_stage(session_factory, job.run_id, config.clustering)
         elif stage == "linking":
             result = run_linking_stage(session_factory, job.run_id, config.linking)
+        elif stage == "hypothesis":
+            result = run_hypothesis_stage(session_factory, job.run_id, hypothesis_provider)
         elif stage == "layout":
             result = run_layout_stage(session_factory, job.run_id)
         else:
@@ -113,14 +121,15 @@ def _run_job(session_factory, config: PipelineConfig, extraction_provider, embed
 def run_forever(database_url: str, use_fake_providers: bool = False) -> None:
     session_factory = make_session_factory(database_url)
     config = PipelineConfig.load()
-    extraction_provider, embedding_provider = _build_providers(config, use_fake_providers)
+    extraction_provider, embedding_provider, hypothesis_provider = _build_providers(config, use_fake_providers)
     last_heartbeat = 0.0
     last_stale_check = 0.0
 
     logger.info(
-        "worker started: extraction=%s embedding=%s cache_only=%s",
+        "worker started: extraction=%s embedding=%s hypothesis=%s cache_only=%s",
         extraction_provider.model_id,
         embedding_provider.model_id,
+        hypothesis_provider.model_id,
         config.cache_only,
     )
 
@@ -144,7 +153,7 @@ def run_forever(database_url: str, use_fake_providers: bool = False) -> None:
 
         logger.info("claimed job=%s type=%s run=%s attempt=%d", job.id, job.type, job.run_id, job.attempts)
         try:
-            _run_job_with_live_heartbeat(session_factory, config, extraction_provider, embedding_provider, job)
+            _run_job_with_live_heartbeat(session_factory, config, extraction_provider, embedding_provider, hypothesis_provider, job)
         except Exception as exc:  # noqa: BLE001 — a failed complaint must be visible, not silently dropped
             logger.exception("job=%s failed", job.id)
             with session_factory() as session:

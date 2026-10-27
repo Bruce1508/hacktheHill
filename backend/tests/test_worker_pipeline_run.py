@@ -23,6 +23,7 @@ from backtrace.db.models import (
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.llm.config import PipelineConfig
 from backtrace.llm.providers import FakeEmbeddingProvider, FakeExtractionProvider
+from backtrace.pipeline.hypothesis import FakeHypothesisProvider
 from backtrace.worker.main import _run_job
 
 RUN_ID_A = "test-worker-pipeline-run-a"
@@ -111,7 +112,7 @@ def test_pipeline_run_completes_all_seven_stages_and_populates_every_new_table()
     config = PipelineConfig.load()
 
     try:
-        _run_job(session_factory, config, FakeExtractionProvider(), FakeEmbeddingProvider(dimension=config.embedding.output_dimensionality), _Job(RUN_ID_A, "pipeline.run"))
+        _run_job(session_factory, config, FakeExtractionProvider(), FakeEmbeddingProvider(dimension=config.embedding.output_dimensionality), FakeHypothesisProvider(), _Job(RUN_ID_A, "pipeline.run"))
 
         with get_session(database_url) as session:
             def count(model, run_id=RUN_ID_A):

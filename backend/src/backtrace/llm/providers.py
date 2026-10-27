@@ -204,3 +204,29 @@ class GeminiTextProvider:
         )
         resp = self._client.models.generate_content(model=self.model_id, contents=prompt)
         return resp.text.strip()
+
+
+class GeminiHypothesisProvider:
+    """Same interactions.create structured-output pattern as
+    GeminiExtractionProvider above."""
+
+    def __init__(self, model_id: str, prompt_version: str, api_key: str | None = None) -> None:
+        from google import genai
+
+        self.model_id = model_id
+        self.prompt_version = prompt_version
+        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS, "retry_options": NO_RETRY})
+
+    def generate(self, pack):
+        from backtrace.contracts.evidence import HypothesisOutput
+        from backtrace.llm.prompts import HYPOTHESIS_PROMPT_V1
+
+        prompt = HYPOTHESIS_PROMPT_V1.format(
+            complaint_ids=pack.complaint_ids, event_ids=pack.event_ids, anomaly_ids=pack.anomaly_ids,
+            score_components=pack.score_components, sample_texts=pack.sample_complaint_texts,
+        )
+        resp = self._client.interactions.create(
+            model=self.model_id, input=prompt,
+            response_format={"type": "text", "mime_type": "application/json", "schema": HypothesisOutput.model_json_schema()},
+        )
+        return HypothesisOutput.model_validate_json(resp.output_text)

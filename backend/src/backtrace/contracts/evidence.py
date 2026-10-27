@@ -1,15 +1,47 @@
 from pydantic import BaseModel
 
 
-class EvidencePackStub(BaseModel):
-    """Placeholder shape for the hypothesis evidence pack (§8.2 step 8).
-
-    Filled in with real linking-score components once evidence linking
-    (§8.3) exists — Day 3 work. Kept here now only so the contracts
-    package matches the Day 1 scope item in §19.
-    """
+class EvidencePack(BaseModel):
+    """Real evidence pack for the hypothesis call and the /cohorts/{id}/evidence
+    response (§8.2 step 8, §8.3). Replaces EvidencePackStub now that evidence
+    linking (Day 3) exists."""
 
     cohort_id: str
     complaint_ids: list[str]
     event_ids: list[str]
     anomaly_ids: list[str]
+    score_components: dict[str, float]  # averaged across cohort_event_links.evidence
+    sample_complaint_texts: list[str]  # pii-redacted, capped (see hypothesis.py)
+
+
+class HypothesisOutput(BaseModel):
+    text: str
+    cited_complaint_ids: list[str] = []
+    cited_event_ids: list[str] = []
+    cited_anomaly_ids: list[str] = []
+
+
+class CohortOut(BaseModel):
+    id: str
+    run_id: str
+    status: str
+    kind: str
+    hypothesis: str | None
+    confidence: float | None
+    member_count: int
+
+    model_config = {"from_attributes": True}
+
+
+class CohortListOut(BaseModel):
+    cohorts: list[CohortOut]
+
+
+class CohortEvidenceOut(BaseModel):
+    cohort_id: str
+    score_components: dict[str, float]
+    hypothesis: str | None
+    hypothesis_citations: dict | None
+    linked_event_ids: list[str]
+    linked_anomaly_ids: list[str]
+    sample_complaint_ids: list[str]

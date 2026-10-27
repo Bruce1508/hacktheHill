@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy import select
 
+from backtrace.api import cohorts
 from backtrace.api.auth import CurrentUser, current_user
 from backtrace.contracts.complaints import ComplaintOut
 from backtrace.contracts.jobs import JobOut, RunOut
@@ -13,6 +14,7 @@ from backtrace.db.models import Complaint, ComplaintFeatures, ComplaintLayout, J
 from backtrace.db.session import get_session
 
 app = FastAPI(title="Backtrace API")
+app.include_router(cohorts.router)
 
 # Worker heartbeats every 10s (backtrace.worker.main); allow two missed beats
 # before calling it dead.

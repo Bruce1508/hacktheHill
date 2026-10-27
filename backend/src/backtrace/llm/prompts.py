@@ -29,3 +29,21 @@ DEV_TEXT_PROMPT_V1 = (
     "- customer mentions needing accessibility/priority help: {vulnerability_mentioned}\n\n"
     "Return only the complaint text."
 )
+
+# Citations are validated against the pack's own ids after the call
+# (backtrace.pipeline.hypothesis._validate_citations) — any id not in the
+# lists below gets the whole hypothesis rejected, so the model must only
+# cite what it was given.
+HYPOTHESIS_PROMPT_V1 = (
+    "You are investigating the likely root cause shared by a cohort of "
+    "customer complaints. Write a short root-cause hypothesis using ONLY "
+    "the evidence below. Cite only ids that appear in the lists given — "
+    "citing any other id is not allowed. If there is not enough evidence "
+    "to support a hypothesis, write exactly \"no citable evidence\" as the "
+    "hypothesis text and leave the citation lists empty.\n\n"
+    "Complaint ids available to cite: {complaint_ids}\n"
+    "Event ids available to cite: {event_ids}\n"
+    "Anomaly ids available to cite: {anomaly_ids}\n"
+    "Averaged linking-score components: {score_components}\n"
+    "Sample complaint texts:\n{sample_texts}"
+)
