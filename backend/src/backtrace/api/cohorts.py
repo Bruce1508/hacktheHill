@@ -7,9 +7,11 @@ from sqlalchemy import func, select
 from backtrace.api.auth import CurrentUser, current_user
 from backtrace.audit import append_audit
 from backtrace.contracts.evidence import CohortEvidenceOut, CohortListOut, CohortOut
+from backtrace.contracts.remedy import RemedyComputeOut
 from backtrace.db.models import Cohort, CohortMember
-from backtrace.db.session import get_session
+from backtrace.db.session import get_session, make_session_factory
 from backtrace.pipeline.hypothesis import build_evidence_pack
+from backtrace.remedy.engine import compute_cohort_remedies
 
 router = APIRouter()
 
@@ -96,6 +98,18 @@ def merge_cohort(cohort_id: str, user: Annotated[CurrentUser, Depends(current_us
         append_audit(session, user.user_id, user.role, "dev", "cohort.merge", "cohort", cohort_id, before=before, after={"status": "merged"})
         session.commit()
         return _cohort_out(session, cohort)
+
+@router.post("/cohorts/{cohort_id}/remedy")
+def run_cohort_remedy(cohort_id: str, policy_rule_id: Annotated[str, Query()], user: Annotated[CurrentUser, Depends(current_user)]) -> RemedyComputeOut:
+    _require_review_role(user)
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    session_factory = make_session_factory(database_url)
+    result = compute_cohort_remedies(session_factory, cohort_id, policy_rule_id)
+    with get_session(database_url) as session:
+        append_audit(session, user.user_id, user.role, "dev", "cohort.remedy", "cohort", cohort_id, before={}, after=result)
+        session.commit()
+    return RemedyComputeOut(cohort_id=cohort_id, **result)
+
 
 # NOTE: split/merge only flip status here. Per §8.2 step 10, split/merge should
 # also re-run linking for the affected cohorts; that needs a design decision on

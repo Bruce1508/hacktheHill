@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from decimal import Decimal
 from pathlib import Path
 from typing import Mapping
 
@@ -57,6 +58,13 @@ class ClusterParams:
 
 
 @dataclass(frozen=True)
+class GateConfig:
+    model_id: str
+    prompt_version: str
+    forbidden_phrases: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class LinkParams:
     weights: Mapping[str, float]
     threshold: float
@@ -71,6 +79,8 @@ class PipelineConfig:
     extraction: ModelPin
     embedding: EmbeddingPin
     hypothesis: ModelPin
+    letter_drafting: ModelPin
+    gate: GateConfig
     max_calls_per_run: int
     max_concurrent_calls: int
     max_calls_per_minute: int
@@ -80,6 +90,7 @@ class PipelineConfig:
     burst: BurstParams
     clustering: ClusterParams
     linking: LinkParams
+    approval_threshold_amount: Decimal
 
     @classmethod
     def load(cls, path: Path = DEFAULT_CONFIG_PATH) -> PipelineConfig:
@@ -89,6 +100,12 @@ class PipelineConfig:
             extraction=ModelPin(**raw["extraction"]),
             embedding=EmbeddingPin(**raw["embedding"]),
             hypothesis=ModelPin(**raw["hypothesis"]),
+            letter_drafting=ModelPin(**raw["letter_drafting"]),
+            gate=GateConfig(
+                model_id=raw["gate"]["model_id"],
+                prompt_version=raw["gate"]["prompt_version"],
+                forbidden_phrases=tuple(raw["gate"]["forbidden_phrases"]),
+            ),
             max_calls_per_run=int(raw["max_calls_per_run"]),
             max_concurrent_calls=int(raw["max_concurrent_calls"]),
             max_calls_per_minute=int(raw["max_calls_per_minute"]),
@@ -120,4 +137,5 @@ class PipelineConfig:
                 lag_max_minutes=int(raw["linking"]["lag_max_minutes"]),
                 temporal_tau_minutes=float(raw["linking"]["temporal_tau_minutes"]),
             ),
+            approval_threshold_amount=Decimal(str(raw["approval_threshold_amount"])),
         )

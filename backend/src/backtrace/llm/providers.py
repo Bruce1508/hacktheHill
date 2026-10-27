@@ -230,3 +230,22 @@ class GeminiHypothesisProvider:
             response_format={"type": "text", "mime_type": "application/json", "schema": HypothesisOutput.model_json_schema()},
         )
         return HypothesisOutput.model_validate_json(resp.output_text)
+
+
+class GeminiLetterProvider:
+    """Same plain generate_content pattern as GeminiTextProvider — the
+    letter is free text, not structured output."""
+
+    def __init__(self, model_id: str, prompt_version: str, api_key: str | None = None) -> None:
+        from google import genai
+
+        self.model_id = model_id
+        self.prompt_version = prompt_version
+        self._client = genai.Client(api_key=api_key or os.environ["GEMINI_API_KEY"], http_options={"timeout": REQUEST_TIMEOUT_MS, "retry_options": NO_RETRY})
+
+    def draft(self, amount: str, claimed_cause: str, issues: list[str]) -> str:
+        from backtrace.llm.prompts import LETTER_PROMPT_V1
+
+        prompt = LETTER_PROMPT_V1.format(amount=amount, claimed_cause=claimed_cause, issues=", ".join(issues))
+        resp = self._client.models.generate_content(model=self.model_id, contents=prompt)
+        return resp.text.strip()

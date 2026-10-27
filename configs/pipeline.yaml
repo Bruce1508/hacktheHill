@@ -28,6 +28,15 @@ hypothesis:
   model_id: gemini-flash-lite-latest
   prompt_version: hypothesis-v1
 
+letter_drafting:
+  model_id: gemini-flash-lite-latest
+  prompt_version: letter-v1
+
+gate:
+  model_id: gemini-flash-lite-latest
+  prompt_version: gate-v1
+  forbidden_phrases: [guarantee, lifetime, unlimited]
+
 # Guardrail for a full dev run (~1,600 complaints => ~1,600 extraction +
 # 1,600 embedding calls on a cold cache). Raise only with a deliberate reason.
 max_calls_per_run: 5000
@@ -64,3 +73,7 @@ linking:
   ambiguity_margin: 0.5
   lag_max_minutes: 720
   temporal_tau_minutes: 180
+
+# §12: remedies above this amount require the `compliance` role to approve,
+# not just `team_lead`.
+approval_threshold_amount: 1000.00
