@@ -10,6 +10,8 @@ from typing import Protocol
 from sqlalchemy.orm import sessionmaker
 
 from backtrace.db.models import Cohort, Complaint, ComplaintFeatures, Letter, Remedy
+from backtrace.llm.cache import cache_key, get_cached, put_cached
+from backtrace.llm.rate_limit import RateLimiter
 
 
 class LetterProvider(Protocol):
@@ -28,7 +30,9 @@ class FakeLetterProvider:
         return f"Dear customer, regarding {claimed_cause} ({', '.join(issues)}), we are issuing a credit of ${amount}."
 
 
-def draft_letter(session_factory: sessionmaker, remedy_id: str, provider: LetterProvider) -> dict:
+def draft_letter(session_factory: sessionmaker, remedy_id: str, provider: LetterProvider, rate_limiter: RateLimiter | None = None) -> dict:
+    """llm_cache-backed like extract_complaint (§8.5): redrafting the same
+    remedy with the same model/prompt_version costs zero tokens."""
     with session_factory() as session:
         remedy = session.get(Remedy, remedy_id)
         complaint = session.get(Complaint, remedy.complaint_id)
@@ -36,7 +40,19 @@ def draft_letter(session_factory: sessionmaker, remedy_id: str, provider: Letter
         features = session.get(ComplaintFeatures, {"run_id": run_id, "complaint_id": remedy.complaint_id})
         extraction = features.extraction if features else {}
 
-        draft_text = provider.draft(amount=str(remedy.amount), claimed_cause=extraction.get("claimed_cause", "the reported issue"), issues=extraction.get("issues", []))
+        amount = str(remedy.amount)
+        claimed_cause = extraction.get("claimed_cause", "the reported issue")
+        issues = extraction.get("issues", [])
+        key = cache_key(provider.model_id, provider.prompt_version, claimed_cause, amount=amount, issues=issues)
+        cached = get_cached(session, key)
+        if cached is not None:
+            draft_text = cached["draft"]
+        else:
+            session.commit()  # release the connection before the slow network call
+            if rate_limiter is not None:
+                rate_limiter.acquire()
+            draft_text = provider.draft(amount=amount, claimed_cause=claimed_cause, issues=issues)
+            put_cached(session, key, {"draft": draft_text})
 
         session.query(Letter).filter(Letter.remedy_id == remedy_id).delete()  # idempotent re-run
         session.add(Letter(id=f"letter-{remedy_id}", remedy_id=remedy_id, complaint_id=complaint.complaint_id, draft=draft_text, prompt_version=provider.prompt_version, gate_result=None))

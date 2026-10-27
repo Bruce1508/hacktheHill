@@ -3,6 +3,7 @@ import os
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 
 from backtrace.api import cohorts, remedies
@@ -14,6 +15,9 @@ from backtrace.db.models import Complaint, ComplaintFeatures, ComplaintLayout, J
 from backtrace.db.session import get_session
 
 app = FastAPI(title="Backtrace API")
+# The web action panel calls the API from the browser with credentials:
+# "include" (demo_user cookie), so the origin must be explicit, never "*".
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 app.include_router(cohorts.router)
 app.include_router(remedies.router)
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from backtrace.db.models import Cohort, CohortEventLink, CohortMember, Complaint, ComplaintFeatures, Customer, DetectedAnomaly, Event, Remedy, RemedyPolicy
+from backtrace.db.models import Approval, Cohort, CohortEventLink, CohortMember, Complaint, ComplaintFeatures, Customer, DetectedAnomaly, Event, Letter, Remedy, RemedyPolicy
 from backtrace.remedy.policy import MemberFacts, RemedyPolicyFacts, apply_policy
 
 
@@ -27,14 +27,30 @@ def _cohort_outage_hours(session, cohort_id: str) -> float | None:
     return None
 
 
+class RemedyInputNotFound(LookupError):
+    """A cohort, policy, or linked outage the computation needs is missing —
+    the API maps this to 404."""
+
+
 def compute_cohort_remedies(session_factory: sessionmaker, cohort_id: str, policy_rule_id: str) -> dict:
     with session_factory() as session:
         cohort = session.get(Cohort, cohort_id)
+        if cohort is None:
+            raise RemedyInputNotFound(f"cohort {cohort_id} not found")
         policy_row = session.get(RemedyPolicy, policy_rule_id)
+        if policy_row is None:
+            raise RemedyInputNotFound(f"remedy policy {policy_rule_id} not found")
         policy = RemedyPolicyFacts(id=policy_row.id, rule_type=policy_row.rule_type, config=policy_row.config, version=policy_row.version)
         outage_hours = _cohort_outage_hours(session, cohort_id) if policy.rule_type == "outage_credit" else None
+        if policy.rule_type == "outage_credit" and outage_hours is None:
+            raise RemedyInputNotFound(f"cohort {cohort_id} has no linked event or anomaly to size an outage credit")
 
-        session.query(Remedy).filter(Remedy.cohort_id == cohort_id).delete()  # idempotent re-run
+        # Idempotent re-run: delete-then-recreate. letters/approvals FK the
+        # remedy with no cascade, so remove them first (Approval -> Letter -> Remedy).
+        old_remedy_ids = select(Remedy.id).where(Remedy.cohort_id == cohort_id)
+        session.query(Approval).filter(Approval.remedy_id.in_(old_remedy_ids)).delete(synchronize_session=False)
+        session.query(Letter).filter(Letter.remedy_id.in_(old_remedy_ids)).delete(synchronize_session=False)
+        session.query(Remedy).filter(Remedy.cohort_id == cohort_id).delete()
 
         computed = routed = 0
         remedy_ids: list[str] = []

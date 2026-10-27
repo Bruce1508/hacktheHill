@@ -2,7 +2,7 @@ import datetime as dt
 
 from sqlalchemy import select
 
-from backtrace.db.models import Cohort, CohortEventLink, CohortMember, Complaint, ComplaintFeatures, Customer, DetectedAnomaly, NetworkNode, PipelineRun, Remedy, RemedyPolicy
+from backtrace.db.models import Approval, Cohort, CohortEventLink, CohortMember, Complaint, ComplaintFeatures, Customer, DetectedAnomaly, Letter, NetworkNode, PipelineRun, Remedy, RemedyPolicy
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.remedy.engine import compute_cohort_remedies
 
@@ -34,6 +34,9 @@ def _seed(database_url: str) -> None:
 
 def _teardown(database_url: str) -> None:
     with get_session(database_url) as session:
+        remedy_ids = select(Remedy.id).where(Remedy.cohort_id == COHORT_ID)
+        session.query(Approval).filter(Approval.remedy_id.in_(remedy_ids)).delete(synchronize_session=False)
+        session.query(Letter).filter(Letter.remedy_id.in_(remedy_ids)).delete(synchronize_session=False)
         session.query(Remedy).filter(Remedy.cohort_id == COHORT_ID).delete()
         session.query(CohortEventLink).filter(CohortEventLink.cohort_id == COHORT_ID).delete()
         session.query(CohortMember).filter(CohortMember.cohort_id == COHORT_ID).delete()
@@ -62,5 +65,28 @@ def test_compute_cohort_remedies_skips_vulnerable_member(database_url_pipeline):
             remedies = session.query(Remedy).filter(Remedy.cohort_id == COHORT_ID).all()
             assert len(remedies) == 1
             assert remedies[0].complaint_id == "eng-complaint-1"
+    finally:
+        _teardown(database_url_pipeline)
+
+
+def test_recompute_after_letter_and_approval_exist(database_url_pipeline):
+    _seed(database_url_pipeline)
+    session_factory = make_session_factory(database_url_pipeline)
+    remedy_id = f"{COHORT_ID}-eng-complaint-1"
+
+    try:
+        compute_cohort_remedies(session_factory, COHORT_ID, "eng-policy-outage-credit-v1")
+        with get_session(database_url_pipeline) as session:
+            session.add(Letter(id="eng-letter-1", remedy_id=remedy_id, complaint_id="eng-complaint-1", draft="d", prompt_version="letter-v1", gate_result={"status": "pass"}))
+            session.flush()
+            session.add(Approval(id="eng-approval-1", remedy_id=remedy_id, approver_user_id="demo-team-lead", role="team_lead", auth_mode="dev", mfa_used=False, decision="approved", decided_at=dt.datetime.now(dt.timezone.utc)))
+            session.commit()
+
+        result = compute_cohort_remedies(session_factory, COHORT_ID, "eng-policy-outage-credit-v1")  # must not raise IntegrityError
+
+        assert result["remedy_ids"] == [remedy_id]
+        with get_session(database_url_pipeline) as session:
+            assert session.get(Letter, "eng-letter-1") is None
+            assert session.get(Approval, "eng-approval-1") is None
     finally:
         _teardown(database_url_pipeline)

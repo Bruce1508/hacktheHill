@@ -26,3 +26,13 @@ def test_check_vulnerability_blocks_cohort_remedy():
     result = check_vulnerability(vulnerability_signals=["mentions hardship"])
     assert result.passed is False
     assert result.reason == "vulnerability_signals present: routes to individual review"
+
+
+def test_check_amount_fails_when_letter_adds_an_unauthorized_amount():
+    result = check_amount(letter_text="a credit of $1.75 plus an extra $50 goodwill credit", expected_amount=Decimal("1.75"))
+    assert result.passed is False
+
+
+def test_check_amount_allows_the_same_amount_stated_twice():
+    result = check_amount(letter_text="a credit of $1.75 ... again, $1.75 total", expected_amount=Decimal("1.75"))
+    assert result.passed is True

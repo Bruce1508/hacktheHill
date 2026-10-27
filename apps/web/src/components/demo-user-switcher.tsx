@@ -1,19 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 
 const DEMO_USERS = ["demo-agent", "demo-team-lead", "demo-compliance"] as const;
+const DEFAULT_USER = DEMO_USERS[0];
 
 function setDemoUserCookie(user: string) {
   document.cookie = `demo_user=${user}; path=/`;
 }
 
+function readDemoUserCookie(): string {
+  const match = document.cookie.match(/(?:^|;\s*)demo_user=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : DEFAULT_USER;
+}
+
+// The cookie only changes via select(), which reloads the page, so there is
+// nothing to subscribe to. useSyncExternalStore (not a lazy useState) keeps
+// the server render on DEFAULT_USER and swaps in the cookie value on hydration
+// without a mismatch warning.
+const noSubscribe = () => () => {};
+
 export function DemoUserSwitcher() {
-  const [current, setCurrent] = useState<string>(DEMO_USERS[0]);
+  const current = useSyncExternalStore(noSubscribe, readDemoUserCookie, () => DEFAULT_USER);
 
   function select(user: string) {
     setDemoUserCookie(user);
-    setCurrent(user);
     window.location.reload(); // simplest correctness: re-fetch every server component with the new identity
   }
 
