@@ -11,7 +11,7 @@ from backtrace.contracts.remedy import RemedyComputeOut
 from backtrace.db.models import Cohort, CohortEventLink, CohortMember, Complaint, DetectedAnomaly
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.pipeline.hypothesis import build_evidence_pack
-from backtrace.remedy.engine import compute_cohort_remedies
+from backtrace.remedy.engine import RemedyInputNotFound, compute_cohort_remedies
 
 router = APIRouter()
 
@@ -130,8 +130,17 @@ def merge_cohort(cohort_id: str, user: Annotated[CurrentUser, Depends(current_us
 def run_cohort_remedy(cohort_id: str, policy_rule_id: Annotated[str, Query()], user: Annotated[CurrentUser, Depends(current_user)]) -> RemedyComputeOut:
     _require_review_role(user)
     database_url = os.environ["DATABASE_URL_PIPELINE"]
+    with get_session(database_url) as session:
+        cohort = session.get(Cohort, cohort_id)
+        if cohort is None:
+            raise HTTPException(status_code=404, detail="cohort not found")
+        if cohort.status != "confirmed":
+            raise HTTPException(status_code=409, detail="cohort must be confirmed before computing remedies")
     session_factory = make_session_factory(database_url)
-    result = compute_cohort_remedies(session_factory, cohort_id, policy_rule_id)
+    try:
+        result = compute_cohort_remedies(session_factory, cohort_id, policy_rule_id)
+    except RemedyInputNotFound as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     with get_session(database_url) as session:
         append_audit(session, user.user_id, user.role, "dev", "cohort.remedy", "cohort", cohort_id, before={}, after=result)
         session.commit()

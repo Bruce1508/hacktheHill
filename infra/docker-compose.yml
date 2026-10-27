@@ -18,12 +18,16 @@ services:
   api:
     build:
       context: ../backend
+    volumes:
+      - ../configs:/app/configs:ro
     depends_on:
       db:
         condition: service_healthy
     environment:
       DATABASE_URL_PIPELINE: postgresql+psycopg://bt_pipeline:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       AUTH_MODE: ${AUTH_MODE}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      PIPELINE_CONFIG_PATH: /app/configs/pipeline.yaml
     ports:
       - "8000:8000"
 

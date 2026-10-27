@@ -26,7 +26,9 @@ def check_amount(letter_text: str, expected_amount: Decimal) -> GateCheckResult:
         found = [Decimal(m) for m in matches]
     except InvalidOperation:
         return GateCheckResult("amount", False, "unparseable amount in letter")
-    if expected_amount not in found:
+    # Every amount stated must be the remedy amount: "$1.75 plus an extra $50"
+    # contains the right figure but commits to money nobody authorized.
+    if set(found) != {expected_amount}:
         return GateCheckResult("amount", False, f"letter amount(s) {found} do not match remedy amount {expected_amount}")
     return GateCheckResult("amount", True)
 

@@ -15,8 +15,8 @@ def _seed(database_url: str) -> None:
         session.merge(Complaint(complaint_id="draft-complaint", customer_id="draft-cust", received_at=dt.datetime.now(dt.timezone.utc), channel="web", text="t", product="fiber_pro", region="north", node_id="n1"))
         session.merge(ComplaintFeatures(run_id=RUN_ID, complaint_id="draft-complaint", extraction={"claimed_cause": "outage", "issues": ["no internet for 12 hours"], "vulnerability_signals": []}, extraction_version="v1", pii_redacted_text="t", needs_review=False))
         session.merge(Cohort(id="draft-cohort", run_id=RUN_ID, status="confirmed", kind="linked"))
-        session.merge(RemedyPolicy(id="policy-outage-credit-v1", rule_type="outage_credit", config={"price_table": {"fiber_pro": 3.50}}, version=1))
-        session.merge(Remedy(id="draft-remedy", cohort_id="draft-cohort", complaint_id="draft-complaint", amount=Decimal("1.75"), policy_rule_id="policy-outage-credit-v1", policy_version=1, rationale="outage credit"))
+        session.merge(RemedyPolicy(id="draft-policy-outage-credit-v1", rule_type="outage_credit", config={"price_table": {"fiber_pro": 3.50}}, version=1))
+        session.merge(Remedy(id="draft-remedy", cohort_id="draft-cohort", complaint_id="draft-complaint", amount=Decimal("1.75"), policy_rule_id="draft-policy-outage-credit-v1", policy_version=1, rationale="outage credit"))
         session.commit()
 
 
@@ -24,7 +24,7 @@ def _teardown(database_url: str) -> None:
     with get_session(database_url) as session:
         session.query(Letter).filter(Letter.remedy_id == "draft-remedy").delete()
         session.query(Remedy).filter(Remedy.id == "draft-remedy").delete()
-        session.query(RemedyPolicy).filter(RemedyPolicy.id == "policy-outage-credit-v1").delete()
+        session.query(RemedyPolicy).filter(RemedyPolicy.id == "draft-policy-outage-credit-v1").delete()
         session.query(Cohort).filter(Cohort.id == "draft-cohort").delete()
         session.query(ComplaintFeatures).filter(ComplaintFeatures.run_id == RUN_ID).delete()
         session.query(Complaint).filter(Complaint.complaint_id == "draft-complaint").delete()
@@ -46,5 +46,30 @@ def test_draft_letter_includes_exact_amount(database_url_pipeline):
             letter = session.query(Letter).filter(Letter.remedy_id == "draft-remedy").one()
             assert "1.75" in letter.draft
             assert letter.gate_result is None
+    finally:
+        _teardown(database_url_pipeline)
+
+
+class _CountingLetterProvider(FakeLetterProvider):
+    calls: int = 0
+
+    def draft(self, amount, claimed_cause, issues):
+        self.calls += 1
+        return super().draft(amount, claimed_cause, issues)
+
+
+def test_redraft_is_served_from_llm_cache(database_url_pipeline):
+    _seed(database_url_pipeline)
+    session_factory = make_session_factory(database_url_pipeline)
+    provider = _CountingLetterProvider()
+
+    try:
+        draft_letter(session_factory, "draft-remedy", provider)
+        calls_after_first = provider.calls  # 0 if an earlier test run already cached it
+        draft_letter(session_factory, "draft-remedy", provider)
+
+        assert provider.calls == calls_after_first
+        with get_session(database_url_pipeline) as session:
+            assert "1.75" in session.query(Letter).filter(Letter.remedy_id == "draft-remedy").one().draft
     finally:
         _teardown(database_url_pipeline)
