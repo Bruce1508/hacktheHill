@@ -87,6 +87,8 @@ Milestones: use one milestone per initiative (e.g. "Day 4 wrap-up"), not one per
 
 The test: every issue should be something a teammate could pick up cold and finish, without asking "what does this actually mean."
 
+**Issue-before-work rule:** before starting implementation on any non-trivial task, confirm a GitHub issue with Acceptance Criteria exists for it — reuse one if `gh issue list` already covers the task, otherwise create one first. Don't start coding against an AC-less task. After the work is done, push it as a PR (not a direct commit to `main`), run the relevant checks/tests, and merge only once they pass.
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
