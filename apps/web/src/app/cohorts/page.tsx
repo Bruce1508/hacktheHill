@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { IngestComplaintForm } from "@/components/ingest-complaint-form";
 import { fetchLatestRun, listCohorts } from "@/lib/api";
 
 export default async function CohortsPage() {
@@ -9,6 +10,7 @@ export default async function CohortsPage() {
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold mb-4">Cohorts</h1>
+      <IngestComplaintForm runId={run.run_id} />
       {cohorts.length === 0 && (
         <p className="text-sm text-neutral-500">No cohorts yet for run {run.run_id}.</p>
       )}
