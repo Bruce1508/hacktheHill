@@ -2,8 +2,9 @@ import datetime as dt
 import os
 
 import pytest
+from sqlalchemy import select
 
-from backtrace.db.models import Complaint, Customer
+from backtrace.db.models import Complaint, ComplaintEmbedding, ComplaintFeatures, Customer, LlmCall, PipelineRun
 from backtrace.db.session import get_session
 
 
@@ -40,6 +41,57 @@ def test_list_complaints_returns_seeded_row(client):
     with get_session(database_url) as session:
         session.delete(session.get(Complaint, "api-complaint-1"))
         session.delete(session.get(Customer, "api-cust-1"))
+        session.commit()
+
+
+def test_ingest_complaint_stores_and_embeds(client, monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "fake")
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    with get_session(database_url) as session:
+        session.merge(Customer(id="ingest-cust-1", region="north", plan="fiber_basic", segment="residential", node_id="node-north-1"))
+        session.merge(
+            PipelineRun(
+                run_id="test-ingest-run",
+                dataset_profile="dev",
+                dataset_seed=1,
+                config={},
+                started_at=dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc),
+            )
+        )
+        session.commit()
+
+    response = client.post(
+        "/complaints",
+        headers={"X-Demo-User": "demo-agent"},
+        json={
+            "run_id": "test-ingest-run",
+            "complaint_id": "ingest-complaint-1",
+            "customer_id": "ingest-cust-1",
+            "received_at": "2026-01-05T12:00:00Z",
+            "channel": "web",
+            "text": "My fiber connection keeps dropping.",
+            "product": "fiber_basic",
+            "region": "north",
+            "node_id": "node-north-1",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body == {"complaint_id": "ingest-complaint-1", "needs_review": False, "embedded": True}
+
+    with get_session(database_url) as session:
+        assert session.get(Complaint, "ingest-complaint-1") is not None
+        assert session.get(ComplaintFeatures, ("test-ingest-run", "ingest-complaint-1")) is not None
+        assert session.get(ComplaintEmbedding, ("test-ingest-run", "ingest-complaint-1")) is not None
+
+        session.delete(session.get(ComplaintEmbedding, ("test-ingest-run", "ingest-complaint-1")))
+        session.delete(session.get(ComplaintFeatures, ("test-ingest-run", "ingest-complaint-1")))
+        session.delete(session.get(Complaint, "ingest-complaint-1"))
+        session.delete(session.get(Customer, "ingest-cust-1"))
+        for call in session.execute(select(LlmCall).where(LlmCall.run_id == "test-ingest-run")).scalars():
+            session.delete(call)
+        session.delete(session.get(PipelineRun, "test-ingest-run"))
         session.commit()
 
 
