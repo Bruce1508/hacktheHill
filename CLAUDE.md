@@ -60,6 +60,33 @@ For multi-step tasks, state a brief plan:
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
 
+## 5. GitHub Issue & Milestone Tracking
+
+**Track real follow-up work. Don't create issues for their own sake.**
+
+Create a GitHub issue when:
+- Work is identified but deliberately not done now (deferred, blocked, quota-bound, needs a decision).
+- The user asks to track something, or asks "what's left."
+
+Do NOT create an issue for:
+- Work finished in the current session (that's a PR/commit, not an issue).
+- A single trivial task with no real follow-up.
+- Something already covered by an existing open issue — check `gh issue list` first.
+
+Before creating, always check existing state first:
+- `gh issue list --state all` — don't duplicate.
+- `gh label list` — reuse existing labels (`bug`, `enhancement`, etc.); don't invent new ones without asking.
+- `gh api repos/{owner}/{repo}/milestones` — reuse an open milestone if one already fits this initiative.
+
+Issue body standard (every issue, no exceptions):
+- **Context** — why this exists, one short paragraph, link related issues/PRs.
+- **Task breakdown** — a `- [ ]` checklist of concrete, independently-verifiable steps. Not vague ("improve X") — each item should be checkable by one person in one sitting.
+- **Acceptance criteria** — the one-sentence condition that makes this closeable.
+
+Milestones: use one milestone per initiative (e.g. "Day 4 wrap-up"), not one per issue. Create a milestone only when there are 2+ related issues that belong grouped together; a single standalone issue doesn't need one. When an initiative spans multiple issues, also create one lightweight tracker issue (checklist of `#N` references to the sub-issues) so progress is visible from one place — assign the tracker to the same milestone.
+
+The test: every issue should be something a teammate could pick up cold and finish, without asking "what does this actually mean."
+
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
