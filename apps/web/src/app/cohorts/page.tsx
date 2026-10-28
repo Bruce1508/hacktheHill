@@ -9,6 +9,9 @@ export default async function CohortsPage() {
   return (
     <main className="p-8">
       <h1 className="text-2xl font-semibold mb-4">Cohorts</h1>
+      {cohorts.length === 0 && (
+        <p className="text-sm text-neutral-500">No cohorts yet for run {run.run_id}.</p>
+      )}
       <ul className="space-y-2">
         {cohorts.map((cohort) => (
           <li key={cohort.id}>
