@@ -9,9 +9,16 @@ from typing import Protocol
 
 from sqlalchemy.orm import sessionmaker
 
-from backtrace.db.models import Cohort, Complaint, ComplaintFeatures, Letter, Remedy
+from backtrace.db.models import Approval, Cohort, Complaint, ComplaintFeatures, Letter, Remedy
 from backtrace.llm.cache import cache_key, get_cached, put_cached
 from backtrace.llm.rate_limit import RateLimiter
+
+
+class RemedyAlreadyApproved(Exception):
+    """Raised when a redraft is attempted after the remedy was approved —
+    checked again here, under a row lock, right before the write, to close
+    the race where an approval lands while a Gemini draft call is in flight
+    (the API layer's own check happens in a separate, earlier transaction)."""
 
 
 class LetterProvider(Protocol):
@@ -54,6 +61,9 @@ def draft_letter(session_factory: sessionmaker, remedy_id: str, provider: Letter
             draft_text = provider.draft(amount=amount, claimed_cause=claimed_cause, issues=issues)
             put_cached(session, key, {"draft": draft_text})
 
+        session.get(Remedy, remedy_id, with_for_update=True)  # serializes against approve_remedy's own locked read
+        if session.get(Approval, f"approval-{remedy_id}") is not None:
+            raise RemedyAlreadyApproved(remedy_id)
         session.query(Letter).filter(Letter.remedy_id == remedy_id).delete()  # idempotent re-run
         session.add(Letter(id=f"letter-{remedy_id}", remedy_id=remedy_id, complaint_id=complaint.complaint_id, draft=draft_text, prompt_version=provider.prompt_version, gate_result=None))
         session.commit()

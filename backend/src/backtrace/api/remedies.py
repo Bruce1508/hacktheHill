@@ -5,6 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status as http_status
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 from backtrace.api.auth import CurrentUser, current_user
 from backtrace.audit import append_audit
@@ -12,7 +13,7 @@ from backtrace.contracts.remedy import ApprovalOut, GateOut, LetterDraftOut
 from backtrace.db.models import Approval, Cohort, Letter, Remedy
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.llm.rate_limit import RateLimiter
-from backtrace.remedy.draft import draft_letter
+from backtrace.remedy.draft import RemedyAlreadyApproved, draft_letter
 
 router = APIRouter()
 
@@ -25,8 +26,8 @@ def _rate_limiter(max_calls_per_minute: int) -> RateLimiter:
     return RateLimiter(max_calls_per_minute)
 
 
-def _get_remedy_or_404(session, remedy_id: str) -> Remedy:
-    remedy = session.get(Remedy, remedy_id)
+def _get_remedy_or_404(session, remedy_id: str, for_update: bool = False) -> Remedy:
+    remedy = session.get(Remedy, remedy_id, with_for_update=for_update) if for_update else session.get(Remedy, remedy_id)
     if remedy is None:
         raise HTTPException(status_code=404, detail="remedy not found")
     return remedy
@@ -45,7 +46,10 @@ def create_letter_draft(remedy_id: str, user: Annotated[CurrentUser, Depends(cur
     session_factory = make_session_factory(database_url)
     config = PipelineConfig.load()
     provider = GeminiLetterProvider(config.letter_drafting.model_id, config.letter_drafting.prompt_version)
-    result = draft_letter(session_factory, remedy_id, provider, _rate_limiter(config.max_calls_per_minute))
+    try:
+        result = draft_letter(session_factory, remedy_id, provider, _rate_limiter(config.max_calls_per_minute))
+    except RemedyAlreadyApproved:
+        raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="remedy already approved; cannot redraft its letter") from None
     with get_session(database_url) as session:
         append_audit(session, user.user_id, user.role, "dev", "letter.draft", "remedy", remedy_id, before={}, after=result)
         session.commit()
@@ -81,7 +85,7 @@ def approve_remedy(remedy_id: str, user: Annotated[CurrentUser, Depends(current_
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     config = PipelineConfig.load()
     with get_session(database_url) as session:
-        remedy = _get_remedy_or_404(session, remedy_id)
+        remedy = _get_remedy_or_404(session, remedy_id, for_update=True)
         cohort = session.get(Cohort, remedy.cohort_id)
         if cohort.status != "confirmed":
             raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="cohort must be confirmed before approving remedies")
@@ -101,7 +105,14 @@ def approve_remedy(remedy_id: str, user: Annotated[CurrentUser, Depends(current_
 
         decided_at = dt.datetime.now(dt.timezone.utc)
         approval = Approval(id=f"approval-{remedy_id}", remedy_id=remedy_id, approver_user_id=user.user_id, role=user.role, auth_mode="dev", mfa_used=False, decision="approved", decided_at=decided_at)
-        session.merge(approval)
+        session.add(approval)  # not merge: the guard above already proved no row exists for this id
         append_audit(session, user.user_id, user.role, "dev", "remedy.approve", "remedy", remedy_id, before={}, after={"decision": "approved", "amount": str(remedy.amount)})
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError:
+            # The for_update lock above closes this for two requests on this
+            # process, but a second process can still race it — the PK
+            # conflict means someone else approved first; report it as such.
+            session.rollback()
+            raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="remedy already approved") from None
         return ApprovalOut(remedy_id=remedy_id, decision="approved", approver_user_id=user.user_id, role=user.role, decided_at=decided_at)

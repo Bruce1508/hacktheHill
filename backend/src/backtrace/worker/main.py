@@ -10,6 +10,8 @@ import os
 import threading
 import time
 
+from sqlalchemy.exc import InterfaceError, OperationalError
+
 from backtrace.db import jobs
 from backtrace.db.models import Job, WorkerHeartbeat
 from backtrace.db.session import make_session_factory
@@ -148,8 +150,10 @@ def run_forever(database_url: str, use_fake_providers: bool = False) -> None:
 
             with session_factory() as session:
                 job = jobs.claim_next(session)
-        except Exception:  # noqa: BLE001 — a dropped DB connection must not kill the worker
-            logger.exception("worker loop iteration failed (likely a DB connection drop); retrying")
+        except (OperationalError, InterfaceError):
+            # A dropped/reset DB connection must not kill the worker; anything
+            # else (bad SQL, auth failure, a real bug) should still crash loud.
+            logger.exception("worker loop iteration failed (DB connection drop); retrying")
             time.sleep(POLL_INTERVAL_SECONDS)
             continue
         if job is None:
@@ -161,11 +165,17 @@ def run_forever(database_url: str, use_fake_providers: bool = False) -> None:
             _run_job_with_live_heartbeat(session_factory, config, extraction_provider, embedding_provider, hypothesis_provider, job)
         except Exception as exc:  # noqa: BLE001 — a failed complaint must be visible, not silently dropped
             logger.exception("job=%s failed", job.id)
-            with session_factory() as session:
-                jobs.mark_failed(session, session.get(Job, job.id), str(exc)[:1000])
+            try:
+                with session_factory() as session:
+                    jobs.mark_failed(session, session.get(Job, job.id), str(exc)[:1000])
+            except (OperationalError, InterfaceError):
+                logger.exception("job=%s could not be marked failed (DB connection drop); recover_stale will requeue it", job.id)
         else:
-            with session_factory() as session:
-                jobs.mark_done(session, session.get(Job, job.id))
+            try:
+                with session_factory() as session:
+                    jobs.mark_done(session, session.get(Job, job.id))
+            except (OperationalError, InterfaceError):
+                logger.exception("job=%s could not be marked done (DB connection drop); recover_stale will requeue it", job.id)
 
 
 def main() -> None:
