@@ -8,7 +8,7 @@ from sqlalchemy import func, select
 
 from backtrace.api.auth import CurrentUser, current_user
 from backtrace.audit import append_audit
-from backtrace.contracts.remedy import ApprovalOut, LetterDraftOut
+from backtrace.contracts.remedy import ApprovalOut, GateOut, LetterDraftOut
 from backtrace.db.models import Approval, Cohort, Letter, Remedy
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.llm.rate_limit import RateLimiter
@@ -40,6 +40,8 @@ def create_letter_draft(remedy_id: str, user: Annotated[CurrentUser, Depends(cur
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     with get_session(database_url) as session:
         _get_remedy_or_404(session, remedy_id)
+        if session.get(Approval, f"approval-{remedy_id}") is not None:
+            raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="remedy already approved; cannot redraft its letter")
     session_factory = make_session_factory(database_url)
     config = PipelineConfig.load()
     provider = GeminiLetterProvider(config.letter_drafting.model_id, config.letter_drafting.prompt_version)
@@ -51,7 +53,7 @@ def create_letter_draft(remedy_id: str, user: Annotated[CurrentUser, Depends(cur
 
 
 @router.post("/remedies/{remedy_id}/gate")
-def run_remedy_gate(remedy_id: str, user: Annotated[CurrentUser, Depends(current_user)]) -> dict:
+def run_remedy_gate(remedy_id: str, user: Annotated[CurrentUser, Depends(current_user)]) -> GateOut:
     from backtrace.gate.consistency import GeminiGateLlmProvider, run_gate
     from backtrace.llm.config import PipelineConfig
 
@@ -65,11 +67,11 @@ def run_remedy_gate(remedy_id: str, user: Annotated[CurrentUser, Depends(current
         letter_id = letter.id
     config = PipelineConfig.load()
     provider = GeminiGateLlmProvider(config.gate.model_id, config.gate.prompt_version)
-    result = run_gate(session_factory, letter_id, provider, _rate_limiter(config.max_calls_per_minute))
+    result = run_gate(session_factory, letter_id, provider, config.gate.forbidden_phrases, _rate_limiter(config.max_calls_per_minute))
     with get_session(database_url) as session:
         append_audit(session, user.user_id, user.role, "dev", "letter.gate", "letter", letter_id, before={}, after=result)
         session.commit()
-    return result
+    return GateOut(**result)
 
 
 @router.post("/remedies/{remedy_id}/approve")
@@ -94,6 +96,8 @@ def approve_remedy(remedy_id: str, user: Annotated[CurrentUser, Depends(current_
             raise HTTPException(status_code=http_status.HTTP_403_FORBIDDEN, detail=f"cohorts totalling over {config.approval_threshold_amount} require compliance role")
         if user.role not in {"team_lead", "compliance"}:
             raise HTTPException(status_code=http_status.HTTP_403_FORBIDDEN, detail="requires team_lead or compliance")
+        if session.get(Approval, f"approval-{remedy_id}") is not None:
+            raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail="remedy already approved")
 
         decided_at = dt.datetime.now(dt.timezone.utc)
         approval = Approval(id=f"approval-{remedy_id}", remedy_id=remedy_id, approver_user_id=user.user_id, role=user.role, auth_mode="dev", mfa_used=False, decision="approved", decided_at=decided_at)

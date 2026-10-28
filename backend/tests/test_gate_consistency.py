@@ -40,7 +40,7 @@ def test_gate_passes_when_amount_matches_and_issues_addressed(database_url_pipel
     provider = FakeGateLlmProvider(fake_all_issues_addressed=True)
 
     try:
-        result = run_gate(session_factory, "gate-letter", provider)
+        result = run_gate(session_factory, "gate-letter", provider, ("guarantee", "lifetime", "unlimited"))
 
         assert result["status"] == "pass"
         with get_session(database_url_pipeline) as session:
@@ -56,7 +56,7 @@ def test_gate_fails_fast_on_amount_mismatch_without_calling_llm(database_url_pip
     provider = FakeGateLlmProvider(fake_all_issues_addressed=True, fail_if_called=True)
 
     try:
-        result = run_gate(session_factory, "gate-letter", provider)
+        result = run_gate(session_factory, "gate-letter", provider, ("guarantee", "lifetime", "unlimited"))
 
         assert result["status"] == "fail"
         assert "amount" in result["reason"]
@@ -69,8 +69,8 @@ def test_regate_of_unchanged_letter_is_served_from_llm_cache(database_url_pipeli
     session_factory = make_session_factory(database_url_pipeline)
 
     try:
-        run_gate(session_factory, "gate-letter", FakeGateLlmProvider(fake_all_issues_addressed=True))
-        result = run_gate(session_factory, "gate-letter", FakeGateLlmProvider(fake_all_issues_addressed=True, fail_if_called=True))
+        run_gate(session_factory, "gate-letter", FakeGateLlmProvider(fake_all_issues_addressed=True), ("guarantee", "lifetime", "unlimited"))
+        result = run_gate(session_factory, "gate-letter", FakeGateLlmProvider(fake_all_issues_addressed=True, fail_if_called=True), ("guarantee", "lifetime", "unlimited"))
 
         assert result["status"] == "pass"
     finally:

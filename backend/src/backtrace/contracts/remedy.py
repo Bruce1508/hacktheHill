@@ -15,6 +15,11 @@ class LetterDraftOut(BaseModel):
     drafted: bool
 
 
+class GateOut(BaseModel):
+    status: str
+    reason: str | None = None
+
+
 class ApprovalOut(BaseModel):
     remedy_id: str
     decision: str

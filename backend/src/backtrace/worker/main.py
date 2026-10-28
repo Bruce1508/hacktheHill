@@ -134,19 +134,24 @@ def run_forever(database_url: str, use_fake_providers: bool = False) -> None:
     )
 
     while True:
-        now = time.monotonic()
-        if now - last_heartbeat >= HEARTBEAT_INTERVAL_SECONDS:
-            _heartbeat(session_factory)
-            last_heartbeat = now
-        if now - last_stale_check >= STALE_CHECK_INTERVAL_SECONDS:
-            with session_factory() as session:
-                recovered = jobs.recover_stale(session)
-                if recovered:
-                    logger.warning("recovered %d stale job(s)", recovered)
-            last_stale_check = now
+        try:
+            now = time.monotonic()
+            if now - last_heartbeat >= HEARTBEAT_INTERVAL_SECONDS:
+                _heartbeat(session_factory)
+                last_heartbeat = now
+            if now - last_stale_check >= STALE_CHECK_INTERVAL_SECONDS:
+                with session_factory() as session:
+                    recovered = jobs.recover_stale(session)
+                    if recovered:
+                        logger.warning("recovered %d stale job(s)", recovered)
+                last_stale_check = now
 
-        with session_factory() as session:
-            job = jobs.claim_next(session)
+            with session_factory() as session:
+                job = jobs.claim_next(session)
+        except Exception:  # noqa: BLE001 — a dropped DB connection must not kill the worker
+            logger.exception("worker loop iteration failed (likely a DB connection drop); retrying")
+            time.sleep(POLL_INTERVAL_SECONDS)
+            continue
         if job is None:
             time.sleep(POLL_INTERVAL_SECONDS)
             continue
