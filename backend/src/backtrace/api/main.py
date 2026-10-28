@@ -11,7 +11,7 @@ from backtrace.api.auth import CurrentUser, current_user
 from backtrace.contracts.complaints import ComplaintIn, ComplaintIngestOut, ComplaintOut
 from backtrace.contracts.jobs import JobOut, RunOut
 from backtrace.contracts.viz import VizComplaintsOut, VizPoint
-from backtrace.db.models import Complaint, ComplaintEmbedding, ComplaintFeatures, ComplaintLayout, Job, PipelineRun, WorkerHeartbeat
+from backtrace.db.models import Complaint, ComplaintEmbedding, ComplaintFeatures, ComplaintLayout, Customer, Job, PipelineRun, WorkerHeartbeat
 from backtrace.db.session import get_session
 from backtrace.llm.config import PipelineConfig
 from backtrace.llm.providers import FakeEmbeddingProvider, FakeExtractionProvider, GeminiEmbeddingProvider, GeminiExtractionProvider
@@ -99,8 +99,7 @@ def list_complaints(
         return [ComplaintOut.model_validate(row) for row in rows]
 
 
-def _build_extraction_embedding_providers():
-    config = PipelineConfig.load()
+def _build_extraction_embedding_providers(config: PipelineConfig):
     if os.environ.get("LLM_PROVIDER") == "fake":
         return FakeExtractionProvider(), FakeEmbeddingProvider(dimension=config.embedding.output_dimensionality)
     return (
@@ -118,9 +117,17 @@ def ingest_complaint(
     existing run_id without a pipeline re-run, reusing the same per-complaint
     extract/embed helpers the batch pipeline stages call."""
     database_url = os.environ["DATABASE_URL_PIPELINE"]
-    extraction_provider, embedding_provider = _build_extraction_embedding_providers()
+    config = PipelineConfig.load()
+    extraction_provider, embedding_provider = _build_extraction_embedding_providers(config)
     with get_session(database_url) as session:
-        session.merge(
+        if session.get(PipelineRun, body.run_id) is None:
+            raise HTTPException(status_code=404, detail=f"run_id {body.run_id!r} not found")
+        if session.get(Customer, body.customer_id) is None:
+            raise HTTPException(status_code=404, detail=f"customer_id {body.customer_id!r} not found")
+        if session.get(Complaint, body.complaint_id) is not None:
+            raise HTTPException(status_code=409, detail=f"complaint_id {body.complaint_id!r} already exists")
+
+        session.add(
             Complaint(
                 complaint_id=body.complaint_id,
                 customer_id=body.customer_id,
@@ -134,7 +141,7 @@ def ingest_complaint(
         )
         session.commit()
 
-        outcome = extract_complaint(session, body.run_id, body.text, extraction_provider)
+        outcome = extract_complaint(session, body.run_id, body.text, extraction_provider, cache_only=config.cache_only)
         session.merge(
             ComplaintFeatures(
                 run_id=body.run_id,
@@ -150,7 +157,7 @@ def ingest_complaint(
         embedded = False
         if not outcome.needs_review:
             symptom_summary = " ".join(outcome.extraction.symptoms)
-            embedding = embed_complaint(session, body.run_id, outcome.pii_redacted_text, symptom_summary, embedding_provider)
+            embedding = embed_complaint(session, body.run_id, outcome.pii_redacted_text, symptom_summary, embedding_provider, cache_only=config.cache_only)
             session.merge(ComplaintEmbedding(run_id=body.run_id, complaint_id=body.complaint_id, model_version=embedding.model_version, embedding=embedding.vector))
             session.commit()
             embedded = True

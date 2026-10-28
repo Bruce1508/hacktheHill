@@ -95,6 +95,81 @@ def test_ingest_complaint_stores_and_embeds(client, monkeypatch):
         session.commit()
 
 
+def test_ingest_complaint_rejects_unknown_run_id(client, monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "fake")
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    with get_session(database_url) as session:
+        session.merge(Customer(id="ingest-cust-2", region="north", plan="fiber_basic", segment="residential", node_id="node-north-1"))
+        session.commit()
+
+    response = client.post(
+        "/complaints",
+        headers={"X-Demo-User": "demo-agent"},
+        json={
+            "run_id": "no-such-run",
+            "complaint_id": "ingest-complaint-2",
+            "customer_id": "ingest-cust-2",
+            "received_at": "2026-01-05T12:00:00Z",
+            "channel": "web",
+            "text": "test",
+            "product": "fiber_basic",
+            "region": "north",
+            "node_id": "node-north-1",
+        },
+    )
+
+    assert response.status_code == 404
+    with get_session(database_url) as session:
+        assert session.get(Complaint, "ingest-complaint-2") is None
+        session.delete(session.get(Customer, "ingest-cust-2"))
+        session.commit()
+
+
+def test_ingest_complaint_rejects_duplicate_id(client, monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "fake")
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    with get_session(database_url) as session:
+        session.merge(Customer(id="ingest-cust-3", region="north", plan="fiber_basic", segment="residential", node_id="node-north-1"))
+        session.merge(
+            PipelineRun(
+                run_id="test-ingest-run-2",
+                dataset_profile="dev",
+                dataset_seed=1,
+                config={},
+                started_at=dt.datetime(2026, 1, 1, tzinfo=dt.timezone.utc),
+            )
+        )
+        session.commit()
+
+    payload = {
+        "run_id": "test-ingest-run-2",
+        "complaint_id": "ingest-complaint-3",
+        "customer_id": "ingest-cust-3",
+        "received_at": "2026-01-05T12:00:00Z",
+        "channel": "web",
+        "text": "first submission",
+        "product": "fiber_basic",
+        "region": "north",
+        "node_id": "node-north-1",
+    }
+    first = client.post("/complaints", headers={"X-Demo-User": "demo-agent"}, json=payload)
+    assert first.status_code == 200
+
+    second = client.post("/complaints", headers={"X-Demo-User": "demo-agent"}, json={**payload, "text": "second submission"})
+    assert second.status_code == 409
+
+    with get_session(database_url) as session:
+        assert session.get(Complaint, "ingest-complaint-3").text == "first submission"
+        session.delete(session.get(ComplaintEmbedding, ("test-ingest-run-2", "ingest-complaint-3")))
+        session.delete(session.get(ComplaintFeatures, ("test-ingest-run-2", "ingest-complaint-3")))
+        session.delete(session.get(Complaint, "ingest-complaint-3"))
+        session.delete(session.get(Customer, "ingest-cust-3"))
+        for call in session.execute(select(LlmCall).where(LlmCall.run_id == "test-ingest-run-2")).scalars():
+            session.delete(call)
+        session.delete(session.get(PipelineRun, "test-ingest-run-2"))
+        session.commit()
+
+
 def test_list_complaints_requires_a_demo_user(client):
     response = client.get("/complaints")
 
