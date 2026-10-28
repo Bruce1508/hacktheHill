@@ -46,7 +46,10 @@ def apply_policy(policy: RemedyPolicyFacts, member: MemberFacts) -> RemedyComput
         rationale = f"Outage credit: {member.outage_hours}h outage at ${daily_price}/day on {member.plan}."
     elif policy.rule_type == "overcharge_refund":
         if member.overcharge_amount is None:
-            raise ValueError(f"overcharge_refund policy requires overcharge_amount for {member.complaint_id}")
+            # overcharge_amount isn't wired into any extraction/complaint field yet
+            # (ponytail: no upstream data source exists for it) — route to individual
+            # review rather than crash, same as the vulnerability-signal path above.
+            return None
         goodwill = Decimal(str(policy.config["goodwill_amount"]))
         amount = (member.overcharge_amount + goodwill).quantize(Decimal("0.01"))
         rationale = f"Overcharge refund: ${member.overcharge_amount} refunded plus ${goodwill} goodwill."

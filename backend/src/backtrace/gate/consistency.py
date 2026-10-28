@@ -14,8 +14,6 @@ from backtrace.llm.cache import cache_key, get_cached, put_cached
 from backtrace.llm.providers import NO_RETRY, REQUEST_TIMEOUT_MS
 from backtrace.llm.rate_limit import RateLimiter
 
-FORBIDDEN_PHRASES = ("guarantee", "lifetime", "unlimited")
-
 
 class GateLlmProvider(Protocol):
     model_id: str
@@ -60,7 +58,7 @@ class GeminiGateLlmProvider:
         return resp.text.strip().lower().startswith("yes")
 
 
-def run_gate(session_factory: sessionmaker, letter_id: str, provider: GateLlmProvider, rate_limiter: RateLimiter | None = None) -> dict:
+def run_gate(session_factory: sessionmaker, letter_id: str, provider: GateLlmProvider, forbidden_phrases: tuple[str, ...], rate_limiter: RateLimiter | None = None) -> dict:
     with session_factory() as session:
         letter = session.get(Letter, letter_id)
         remedy = session.get(Remedy, letter.remedy_id)
@@ -70,7 +68,7 @@ def run_gate(session_factory: sessionmaker, letter_id: str, provider: GateLlmPro
 
         rule_results = [
             check_amount(letter.draft, remedy.amount),
-            check_forbidden_phrases(letter.draft, FORBIDDEN_PHRASES),
+            check_forbidden_phrases(letter.draft, forbidden_phrases),
             check_vulnerability(extraction.get("vulnerability_signals", [])),
         ]
         failed = next((r for r in rule_results if not r.passed), None)
