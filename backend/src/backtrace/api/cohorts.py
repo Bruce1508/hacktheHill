@@ -6,9 +6,9 @@ from sqlalchemy import func, select
 
 from backtrace.api.auth import CurrentUser, current_user
 from backtrace.audit import append_audit
-from backtrace.contracts.evidence import AnomalyWindowOut, CohortEvidenceOut, CohortListOut, CohortOut, CohortTimelineOut, ComplaintBucketOut
+from backtrace.contracts.evidence import AnomalyWindowOut, CohortAssignmentOut, CohortEvidenceOut, CohortListOut, CohortOut, CohortTimelineOut, ComplaintBucketOut
 from backtrace.contracts.remedy import RemedyComputeOut
-from backtrace.db.models import Cohort, CohortEventLink, CohortMember, Complaint, DetectedAnomaly
+from backtrace.db.models import Cohort, CohortEventLink, CohortMember, Complaint, ComplaintEmbedding, DetectedAnomaly
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.pipeline.hypothesis import build_evidence_pack
 from backtrace.remedy.engine import RemedyInputNotFound, compute_cohort_remedies
@@ -17,6 +17,9 @@ router = APIRouter()
 
 REVIEW_ROLES = {"team_lead", "compliance"}
 TIMELINE_BUCKET_MINUTES = 15
+# ponytail: no tuned threshold exists yet (Day 5 baseline); 0.15 cosine
+# distance is a judgment call, revisit once #44's held-out eval has numbers.
+ONLINE_ASSIGNMENT_COSINE_THRESHOLD = 0.15
 
 
 def _require_review_role(user: CurrentUser) -> None:
@@ -83,6 +86,43 @@ def get_cohort_timeline(cohort_id: str, _user: Annotated[CurrentUser, Depends(cu
             anomaly_windows.append(AnomalyWindowOut(anomaly_id=anomaly.id, metric=anomaly.metric, start_at=anomaly.start_at.isoformat(), end_at=anomaly.end_at.isoformat(), peak_score=anomaly.peak_score))
 
         return CohortTimelineOut(cohort_id=cohort_id, complaint_buckets=complaint_buckets, anomaly_windows=anomaly_windows)
+
+
+@router.post("/complaints/{complaint_id}/cohort-assignment")
+def assign_complaint_cohort(
+    complaint_id: str,
+    run_id: Annotated[str, Query()],
+    user: Annotated[CurrentUser, Depends(current_user)],
+) -> CohortAssignmentOut:
+    """Vector-only cohort assignment for a newly-ingested complaint (#42):
+    nearest existing cohort member by cosine distance, or flagged as new if
+    nothing is close enough. No BM25/RRF — that's the Day 6 upgrade (#27)."""
+    with get_session(os.environ["DATABASE_URL_PIPELINE"]) as session:
+        target = session.get(ComplaintEmbedding, (run_id, complaint_id))
+        if target is None:
+            raise HTTPException(status_code=404, detail="complaint has no embedding for this run_id yet")
+        if session.get(CohortMember, (run_id, complaint_id)) is not None:
+            raise HTTPException(status_code=409, detail="complaint is already assigned to a cohort for this run_id")
+
+        nearest = session.execute(
+            select(CohortMember.cohort_id, ComplaintEmbedding.embedding.cosine_distance(target.embedding).label("distance"))
+            .join(ComplaintEmbedding, (ComplaintEmbedding.run_id == CohortMember.run_id) & (ComplaintEmbedding.complaint_id == CohortMember.complaint_id))
+            .where(CohortMember.run_id == run_id, CohortMember.complaint_id != complaint_id)
+            .order_by("distance")
+            .limit(1)
+        ).first()
+
+        if nearest is None or nearest.distance > ONLINE_ASSIGNMENT_COSINE_THRESHOLD:
+            return CohortAssignmentOut(complaint_id=complaint_id, assigned=False, cohort_id=None, similarity=None)
+
+        similarity = 1.0 - nearest.distance
+        session.add(CohortMember(run_id=run_id, complaint_id=complaint_id, cohort_id=nearest.cohort_id, membership_score=similarity, assigned_by="online", needs_review=False))
+        append_audit(
+            session, user.user_id, user.role, "dev", "complaint.cohort_assign", "complaint", complaint_id,
+            before={}, after={"cohort_id": nearest.cohort_id, "similarity": similarity},
+        )
+        session.commit()
+        return CohortAssignmentOut(complaint_id=complaint_id, assigned=True, cohort_id=nearest.cohort_id, similarity=similarity)
 
 
 @router.post("/cohorts/{cohort_id}/confirm")

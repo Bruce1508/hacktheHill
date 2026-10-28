@@ -1,6 +1,13 @@
 from pydantic import BaseModel
 
 
+class CohortAssignmentOut(BaseModel):
+    complaint_id: str
+    assigned: bool
+    cohort_id: str | None
+    similarity: float | None
+
+
 class EvidencePack(BaseModel):
     """Real evidence pack for the hypothesis call and the /cohorts/{id}/evidence
     response (§8.2 step 8, §8.3). Replaces EvidencePackStub now that evidence
