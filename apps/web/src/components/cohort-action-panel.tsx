@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { approveRemedy, confirmCohort, draftLetter, runCohortRemedy, runGate } from "@/lib/api";
 
 const DEFAULT_OUTAGE_POLICY = "policy-outage-credit-v1";
 
 export function CohortActionPanel({ cohortId }: { cohortId: string }) {
+  const router = useRouter();
   const [log, setLog] = useState<string[]>([]);
   const [remedyIds, setRemedyIds] = useState<string[]>([]);
 
@@ -13,6 +15,7 @@ export function CohortActionPanel({ cohortId }: { cohortId: string }) {
     try {
       const result = await action();
       setLog((prev) => [...prev, `${label}: ${JSON.stringify(result)}`]);
+      router.refresh();
       return result;
     } catch (err) {
       setLog((prev) => [...prev, `${label} FAILED: ${String(err)}`]);
