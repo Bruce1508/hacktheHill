@@ -51,7 +51,7 @@ export async function listCohorts(runId: string): Promise<{ cohorts: CohortOut[]
 }
 
 export async function getCohort(id: string): Promise<CohortOut> {
-  const res = await fetch(`${API_URL}/cohorts/${id}`, {
+  const res = await fetch(`${API_URL}/cohorts/${encodeURIComponent(id)}`, {
     cache: "no-store",
     headers: API_HEADERS,
   });
@@ -62,7 +62,7 @@ export async function getCohort(id: string): Promise<CohortOut> {
 }
 
 export async function getCohortEvidence(id: string): Promise<CohortEvidenceOut> {
-  const res = await fetch(`${API_URL}/cohorts/${id}/evidence`, {
+  const res = await fetch(`${API_URL}/cohorts/${encodeURIComponent(id)}/evidence`, {
     cache: "no-store",
     headers: API_HEADERS,
   });
@@ -83,7 +83,7 @@ export type CohortTimelineOut = {
 };
 
 export async function getCohortTimeline(id: string): Promise<CohortTimelineOut> {
-  const res = await fetch(`${API_URL}/cohorts/${id}/timeline`, {
+  const res = await fetch(`${API_URL}/cohorts/${encodeURIComponent(id)}/timeline`, {
     cache: "no-store",
     headers: API_HEADERS,
   });
@@ -153,7 +153,7 @@ export async function fetchVizComplaints(): Promise<VizComplaints | null> {
 // `credentials: "include"` sends that cookie cross-origin to the API.
 
 export async function confirmCohort(id: string): Promise<CohortOut> {
-  const res = await fetch(`${API_URL}/cohorts/${id}/confirm`, {
+  const res = await fetch(`${API_URL}/cohorts/${encodeURIComponent(id)}/confirm`, {
     method: "POST",
     credentials: "include",
   });
@@ -164,7 +164,7 @@ export async function confirmCohort(id: string): Promise<CohortOut> {
 }
 
 export async function runCohortRemedy(id: string, policyRuleId: string): Promise<{ cohort_id: string; computed: number; routed_to_individual_review: number; remedy_ids: string[] }> {
-  const res = await fetch(`${API_URL}/cohorts/${id}/remedy?policy_rule_id=${encodeURIComponent(policyRuleId)}`, {
+  const res = await fetch(`${API_URL}/cohorts/${encodeURIComponent(id)}/remedy?policy_rule_id=${encodeURIComponent(policyRuleId)}`, {
     method: "POST",
     credentials: "include",
   });
@@ -175,7 +175,7 @@ export async function runCohortRemedy(id: string, policyRuleId: string): Promise
 }
 
 export async function draftLetter(remedyId: string): Promise<{ remedy_id: string; drafted: boolean }> {
-  const res = await fetch(`${API_URL}/remedies/${remedyId}/drafts`, {
+  const res = await fetch(`${API_URL}/remedies/${encodeURIComponent(remedyId)}/drafts`, {
     method: "POST",
     credentials: "include",
   });
@@ -186,7 +186,7 @@ export async function draftLetter(remedyId: string): Promise<{ remedy_id: string
 }
 
 export async function runGate(remedyId: string): Promise<Record<string, unknown>> {
-  const res = await fetch(`${API_URL}/remedies/${remedyId}/gate`, {
+  const res = await fetch(`${API_URL}/remedies/${encodeURIComponent(remedyId)}/gate`, {
     method: "POST",
     credentials: "include",
   });
@@ -197,7 +197,7 @@ export async function runGate(remedyId: string): Promise<Record<string, unknown>
 }
 
 export async function approveRemedy(remedyId: string): Promise<{ remedy_id: string; decision: string; approver_user_id: string; role: string; decided_at: string }> {
-  const res = await fetch(`${API_URL}/remedies/${remedyId}/approve`, {
+  const res = await fetch(`${API_URL}/remedies/${encodeURIComponent(remedyId)}/approve`, {
     method: "POST",
     credentials: "include",
   });

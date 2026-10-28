@@ -12,7 +12,7 @@ export default async function CohortsPage() {
       <ul className="space-y-2">
         {cohorts.map((cohort) => (
           <li key={cohort.id}>
-            <Link href={`/cohorts/${cohort.id}`} className="block rounded border p-4 hover:bg-neutral-50">
+            <Link href={`/cohorts/${encodeURIComponent(cohort.id)}`} className="block rounded border p-4 hover:bg-neutral-50">
               <div className="flex justify-between">
                 <span className="font-medium">{cohort.id}</span>
                 <span className="text-sm text-neutral-500">
