@@ -163,6 +163,46 @@ export async function confirmCohort(id: string): Promise<CohortOut> {
   return res.json();
 }
 
+export type ComplaintIn = {
+  run_id: string;
+  complaint_id: string;
+  customer_id: string;
+  received_at: string;
+  channel: string;
+  text: string;
+  product: string;
+  region: string;
+  node_id: string;
+};
+
+export type ComplaintIngestOut = { complaint_id: string; needs_review: boolean; embedded: boolean };
+
+export async function ingestComplaint(body: ComplaintIn): Promise<ComplaintIngestOut> {
+  const res = await fetch(`${API_URL}/complaints`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to ingest complaint: ${res.status} ${await res.text()}`);
+  }
+  return res.json();
+}
+
+export type CohortAssignmentOut = { complaint_id: string; assigned: boolean; cohort_id: string | null; similarity: number | null };
+
+export async function assignCohort(complaintId: string, runId: string): Promise<CohortAssignmentOut> {
+  const res = await fetch(`${API_URL}/complaints/${encodeURIComponent(complaintId)}/cohort-assignment?run_id=${encodeURIComponent(runId)}`, {
+    method: "POST",
+    credentials: "include",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to assign cohort: ${res.status} ${await res.text()}`);
+  }
+  return res.json();
+}
+
 export async function runCohortRemedy(id: string, policyRuleId: string): Promise<{ cohort_id: string; computed: number; routed_to_individual_review: number; remedy_ids: string[] }> {
   const res = await fetch(`${API_URL}/cohorts/${encodeURIComponent(id)}/remedy?policy_rule_id=${encodeURIComponent(policyRuleId)}`, {
     method: "POST",
