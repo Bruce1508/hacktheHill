@@ -6,6 +6,8 @@ __pycache__/
 .pytest_cache/
 fixtures/dev/
 fixtures/dev.bak-templated-text/
+fixtures/held-out/
+docs/eval/
 reports/
 
 # Claude-mem plugin (local, machine-generated)

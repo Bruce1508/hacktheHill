@@ -1,0 +1,28 @@
+profile: dev
+seed: 20261029
+start_date: '2026-02-15'
+window_days: 14
+num_customers: 800
+num_complaints: 150
+regions: [north, northeast, east, southeast, south, southwest, west, northwest]
+nodes_per_region: 3
+telemetry_step_minutes: 5
+one_off_fraction: 0.20
+misattribution_fraction: 0.15
+repeat_fraction: 0.12
+multi_issue_fraction: 0.08
+channels: [phone, email, chat, web]
+plans:
+  fiber_basic: {segment: residential, daily_price: 2.00}
+  fiber_pro: {segment: residential, daily_price: 3.50}
+  tv_bundle: {segment: residential, daily_price: 4.75}
+  business_ethernet: {segment: business, daily_price: 12.00}
+causes:
+  - {kind: fiber_cut, region: south, source: network_alarm}
+  - {kind: optical_degradation, region: south, source: network_alarm}
+  - {kind: maintenance_overrun, region: west, source: deploy}
+  - {kind: dns_failure, region: northeast, source: network_alarm, observable: false}
+  - {kind: billing_double_charge, region: east, source: billing_run}
+  - {kind: unnotified_price_increase, region: north, source: policy_change}
+  - {kind: technician_no_show, region: northwest, source: dispatch_log, observable: false}
+  - {kind: cancellation_fee, region: southeast, source: billing_run}
