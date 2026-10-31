@@ -1,5 +1,7 @@
 import datetime as dt
 import os
+import threading
+import time
 
 import pytest
 
@@ -70,5 +72,56 @@ def test_wait_for_run_times_out_while_still_running():
 
     with pytest.raises(TimeoutError):
         wait_for_run(database_url, run_id, timeout_seconds=0.2, poll_interval_seconds=0.1)
+
+    _cleanup(database_url, job_id, run_id)
+
+
+def test_wait_for_run_raises_value_error_when_no_job_exists():
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    run_id = "test-run-cli-wait-no-job"
+
+    with pytest.raises(ValueError, match=run_id):
+        wait_for_run(database_url, run_id, timeout_seconds=5, poll_interval_seconds=0.1)
+
+
+def test_wait_for_run_ignores_a_pipeline_stage_job_for_the_same_run_id():
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    run_id = "test-run-cli-wait-wrong-type"
+    with get_session(database_url) as session:
+        _seed_run(session, run_id)
+        stage_job = jobs.enqueue(session, run_id, "pipeline.stage", {}, stage="extraction")
+        stage_job.status = "done"
+        session.commit()
+        job_id = stage_job.id
+
+    with pytest.raises(ValueError, match=run_id):
+        wait_for_run(database_url, run_id, timeout_seconds=5, poll_interval_seconds=0.1)
+
+    _cleanup(database_url, job_id, run_id)
+
+
+def test_wait_for_run_picks_up_a_status_change_that_happens_mid_poll():
+    database_url = os.environ["DATABASE_URL_PIPELINE"]
+    run_id = "test-run-cli-wait-mid-poll"
+    with get_session(database_url) as session:
+        _seed_run(session, run_id)
+        job = jobs.enqueue(session, run_id, "pipeline.run", {})
+        job.status = "running"
+        session.commit()
+        job_id = job.id
+
+    def _mark_done_shortly() -> None:
+        time.sleep(0.3)
+        with get_session(database_url) as session:
+            session.get(Job, job_id).status = "done"
+            session.commit()
+
+    flipper = threading.Thread(target=_mark_done_shortly)
+    flipper.start()
+    try:
+        result = wait_for_run(database_url, run_id, timeout_seconds=5, poll_interval_seconds=0.05)
+        assert result.status == "done"
+    finally:
+        flipper.join()
 
     _cleanup(database_url, job_id, run_id)

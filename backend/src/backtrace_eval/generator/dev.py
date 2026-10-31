@@ -68,10 +68,12 @@ class DevWorldConfig:
     channels: tuple[str, ...]
     plans: Mapping[str, Mapping[str, object]]
     causes: tuple[CauseConfig, ...]
+    id_prefix: str = "dev"
 
     @classmethod
     def from_dict(cls, raw: Mapping[str, object]) -> DevWorldConfig:
         config = cls(
+            id_prefix=str(raw.get("id_prefix", "dev")),
             profile=str(raw["profile"]),
             seed=int(raw["seed"]),
             start_date=str(raw["start_date"]),
@@ -188,10 +190,10 @@ def _timestamp(value: dt.datetime) -> str:
     return value.isoformat()
 
 
-def _affected_customers(cause: CauseConfig, customers: list[dict], nodes_per_region: int) -> list[str]:
+def _affected_customers(cause: CauseConfig, customers: list[dict], nodes_per_region: int, id_prefix: str = "dev") -> list[str]:
     in_region = [c for c in customers if c["region"] == cause.region]
     if cause.kind == "fiber_cut":
-        return [c["id"] for c in in_region if c["node_id"] == f"dev-node-{cause.region}-1"]
+        return [c["id"] for c in in_region if c["node_id"] == f"{id_prefix}-node-{cause.region}-1"]
     if cause.kind == "optical_degradation":
         return [c["id"] for c in in_region]
     if cause.kind == "cancellation_fee":
@@ -211,20 +213,20 @@ def generate_dev_world(config: DevWorldConfig, text_provider: TextProvider | Non
 
     for region in config.regions:
         for index in range(1, config.nodes_per_region + 1):
-            node_id = f"dev-node-{region}-{index}"
+            node_id = f"{config.id_prefix}-node-{region}-{index}"
             world.network_nodes.append({"id": node_id, "region": region, "kind": "access_site"})
             next_index = index % config.nodes_per_region + 1
-            world.network_links.append({"id": f"dev-link-{region}-{index}", "region": region, "from_node_id": node_id, "to_node_id": f"dev-node-{region}-{next_index}", "redundant": index == config.nodes_per_region})
+            world.network_links.append({"id": f"{config.id_prefix}-link-{region}-{index}", "region": region, "from_node_id": node_id, "to_node_id": f"{config.id_prefix}-node-{region}-{next_index}", "redundant": index == config.nodes_per_region})
 
     for index in range(config.num_customers):
         region = config.regions[index % len(config.regions)]
         plan = rng.choice(plan_names)
         attributes = config.plans[plan]
-        customer_id = f"dev-cust-{index:05d}"
+        customer_id = f"{config.id_prefix}-cust-{index:05d}"
         vulnerability_by_customer[customer_id] = rng.random() < 0.08
         world.customers.append({
             "id": customer_id, "region": region, "plan": plan,
-            "segment": attributes["segment"], "node_id": f"dev-node-{region}-{rng.randint(1, config.nodes_per_region)}",
+            "segment": attributes["segment"], "node_id": f"{config.id_prefix}-node-{region}-{rng.randint(1, config.nodes_per_region)}",
             "tenure_months": rng.randint(1, 180),
         })
     customers_by_id = {c["id"]: c for c in world.customers}
@@ -238,8 +240,8 @@ def generate_dev_world(config: DevWorldConfig, text_provider: TextProvider | Non
         hour = 8 if index == 0 else 9 if index == 1 else rng.randint(6, 18)
         begins = start + dt.timedelta(days=day, hours=hour)
         ends = begins + dt.timedelta(hours=4 if index < 2 else rng.randint(2, 8))
-        affected = _affected_customers(spec, world.customers, config.nodes_per_region)
-        cause_id = f"dev-cause-{index:02d}"
+        affected = _affected_customers(spec, world.customers, config.nodes_per_region, config.id_prefix)
+        cause_id = f"{config.id_prefix}-cause-{index:02d}"
         gold = {
             "id": cause_id, "kind": spec.kind, "start_at": _timestamp(begins), "end_at": _timestamp(ends),
             "region": spec.region, "affected_customer_ids": affected,
@@ -252,14 +254,14 @@ def generate_dev_world(config: DevWorldConfig, text_provider: TextProvider | Non
         if spec.observable:
             trace_suffix = hashlib.sha256(f"{config.seed}:{cause_id}".encode()).hexdigest()[:10]
             world.events.append({
-                "id": f"dev-trace-{trace_suffix}", "source": spec.source,
+                "id": f"{config.id_prefix}-trace-{trace_suffix}", "source": spec.source,
                 "start_at": _timestamp(begins + dt.timedelta(minutes=rng.randint(0, 25))),
                 "end_at": _timestamp(ends), "scope": {"region": spec.region},
                 "search_text": f"{spec.source.replace('_', ' ')} record in {spec.region}",
             })
     decoy_region = config.regions[-1]
     world.events.append({
-        "id": "dev-trace-decoy", "source": "network_alarm", "start_at": _timestamp(start + dt.timedelta(days=5)),
+        "id": f"{config.id_prefix}-trace-decoy", "source": "network_alarm", "start_at": _timestamp(start + dt.timedelta(days=5)),
         "end_at": _timestamp(start + dt.timedelta(days=5, hours=1)),
         "scope": {"region": decoy_region}, "search_text": f"redundant path alarm in {decoy_region}",
     })
@@ -344,7 +346,7 @@ def generate_dev_world(config: DevWorldConfig, text_provider: TextProvider | Non
             secondary_symptom = SYMPTOMS[causes[other_index][0].kind]
         elif is_multi_issue:
             secondary_symptom = "the bill also looks confusing"
-        complaint_id = f"dev-complaint-{index:05d}"
+        complaint_id = f"{config.id_prefix}-complaint-{index:05d}"
         channel = rng.choice(config.channels)
         mentioned = vulnerability_by_customer[customer["id"]] and rng.random() < 0.4
         text_seed = TextSeed(

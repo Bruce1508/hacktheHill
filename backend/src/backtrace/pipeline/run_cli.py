@@ -8,6 +8,7 @@ import time
 import uuid
 
 from sqlalchemy import select
+from sqlalchemy.exc import InterfaceError, OperationalError
 
 from backtrace.db import jobs
 from backtrace.db.models import Job, PipelineRun
@@ -37,14 +38,22 @@ def wait_for_run(database_url: str, run_id: str, timeout_seconds: float, poll_in
     via `docker compose`) does the actual processing out of band."""
     deadline = time.monotonic() + timeout_seconds
     while True:
-        with get_session(database_url) as session:
-            job = session.execute(select(Job).where(Job.run_id == run_id, Job.type == "pipeline.run")).scalar_one_or_none()
+        try:
+            with get_session(database_url) as session:
+                job = session.execute(select(Job).where(Job.run_id == run_id, Job.type == "pipeline.run")).scalar_one_or_none()
+        except (OperationalError, InterfaceError):
+            # A dropped/reset DB connection must not abort a 30-minute poll
+            # over a blip (same guard as worker/main.py's run loop).
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(poll_interval_seconds)
+            continue
         if job is None:
             raise ValueError(f"no pipeline.run job found for run_id={run_id!r}")
         if job.status == "done":
             return job
         if job.status == "failed":
-            raise RuntimeError(f"pipeline.run job for run_id={run_id!r} failed: {job.error}")
+            raise RuntimeError(f"pipeline.run job for run_id={run_id!r} failed: {job.error} (see worker logs for the full traceback)")
         if time.monotonic() >= deadline:
             raise TimeoutError(f"pipeline.run job for run_id={run_id!r} did not finish within {timeout_seconds}s (status={job.status})")
         time.sleep(poll_interval_seconds)

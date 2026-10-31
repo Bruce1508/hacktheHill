@@ -4,7 +4,11 @@ export
 .PHONY: up down migrate seed-tiny generate-dev seed-dev check-extensions test-backend worker enqueue-run job-status generate-held-out seed-held-out eval
 
 HELD_OUT_SEED := 20261029
-EVAL_RUN_ID := $(or $(RUN_ID),held-out-eval)
+# Hashed into the default run ID so editing held-out.yaml (new seed, sizes,
+# causes, ...) can't silently reuse another config's cached extractions/
+# embeddings, which are keyed by (run_id, complaint_id) only.
+HELD_OUT_CONFIG_HASH := $(shell shasum -a 256 configs/worlds/held-out.yaml | cut -c1-8)
+EVAL_RUN_ID := $(or $(RUN_ID),held-out-eval-$(HELD_OUT_CONFIG_HASH))
 
 up:
 	docker compose -f infra/docker-compose.yml up -d --build
