@@ -1,3 +1,4 @@
+import dataclasses
 import datetime as dt
 import os
 
@@ -109,7 +110,10 @@ def test_pipeline_run_completes_all_seven_stages_and_populates_every_new_table()
     database_url = os.environ["DATABASE_URL_PIPELINE"]
     _seed(database_url, RUN_ID_A)
     session_factory = make_session_factory(database_url)
-    config = PipelineConfig.load()
+    # max_calls_per_minute is tuned for real Gemini quota; against Fake
+    # providers it would throttle the full dev-fixture run (~1600 complaints)
+    # to over two hours for no reason.
+    config = dataclasses.replace(PipelineConfig.load(), max_calls_per_minute=0)
 
     try:
         _run_job(session_factory, config, FakeExtractionProvider(), FakeEmbeddingProvider(dimension=config.embedding.output_dimensionality), FakeHypothesisProvider(), _Job(RUN_ID_A, "pipeline.run"))
