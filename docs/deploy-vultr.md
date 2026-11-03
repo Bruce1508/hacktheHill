@@ -40,7 +40,7 @@ docker compose --env-file .env -f infra/docker-compose.yml up -d --build
 
 ```sh
 curl -LsSf https://astral.sh/uv/install.sh | sh
-cd backend && ~/.local/bin/uv sync   # uv.lock isn't committed — omit --frozen
+cd backend && ~/.local/bin/uv sync --frozen
 cd .. && source .env && cd backend
 DATABASE_URL=$DATABASE_URL_OWNER BT_PIPELINE_PASSWORD=$POSTGRES_PASSWORD BT_EVAL_PASSWORD=$POSTGRES_PASSWORD .venv/bin/alembic upgrade head
 cd ..
