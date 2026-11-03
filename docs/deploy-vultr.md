@@ -30,25 +30,47 @@ Edit `.env`:
 
 ## 4. Bring it up
 
+Run from the repo root (not `infra/`), with `--env-file .env` explicit — this compose version doesn't auto-discover `.env` from the CWD the way older versions did, and silently defaults every var to blank (the `db` container then fails to start with "superuser password is not specified"):
+
 ```sh
-cd infra
-docker compose up -d --build
+docker compose --env-file .env -f infra/docker-compose.yml up -d --build
 ```
 
-Run migrations + seed the dev world once the `db` service is healthy (same commands as local, just prefixed to run inside the `api` container or via the host-side `DATABASE_URL_*` vars pointed at the box):
+`backend/Dockerfile` only `COPY`s `src/`, not the `alembic/` directory — migrations can't run inside the `api` container. Run them from a host-side venv instead, pointed at the DB's exposed port (`POSTGRES_PORT` in `.env`, default 5433):
 
 ```sh
-docker compose exec api alembic upgrade head
-# then seed-dev equivalent — see Makefile's `seed-dev` target for the exact command
+curl -LsSf https://astral.sh/uv/install.sh | sh
+cd backend && ~/.local/bin/uv sync   # uv.lock isn't committed — omit --frozen
+cd .. && source .env && cd backend
+DATABASE_URL=$DATABASE_URL_OWNER BT_PIPELINE_PASSWORD=$POSTGRES_PASSWORD BT_EVAL_PASSWORD=$POSTGRES_PASSWORD .venv/bin/alembic upgrade head
+cd ..
+```
+
+Then seed the dev world the same way:
+
+```sh
+PYTHONPATH=backend/src backend/.venv/bin/python -m backtrace_eval.generator.cli generate --world-config configs/worlds/dev.yaml --out fixtures/dev
+PYTHONPATH=backend/src backend/.venv/bin/python -m backtrace_eval.generator.load --fixture fixtures/dev --database-url $DATABASE_URL_EVAL
 ```
 
 ## 5. Open firewall ports
 
-In the Vultr dashboard's firewall settings (or `ufw` on the box), allow inbound `3000` (web) and `8000` (api) from anywhere, plus `22` for SSH.
+`ufw` is active by default on a fresh Vultr Ubuntu image, allowing only `22`:
+
+```sh
+ufw allow 3000/tcp
+ufw allow 8000/tcp
+ufw reload
+```
 
 ## 6. Verify
 
-Open `http://<IP>:3000` and walk the 10-step demo against the deployed build — this is the acceptance criteria for #28, not a localhost run.
+```sh
+curl -o /dev/null -w "%{http_code}\n" http://<IP>:8000/health
+curl -o /dev/null -w "%{http_code}\n" http://<IP>:3000
+```
+
+Then open `http://<IP>:3000` in a browser and walk the 10-step demo against the deployed build — this is the acceptance criteria for #28, not a localhost run.
 
 ## Notes
 
