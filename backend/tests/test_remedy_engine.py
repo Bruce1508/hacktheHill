@@ -2,9 +2,11 @@ import datetime as dt
 
 from sqlalchemy import select
 
+import pytest
+
 from backtrace.db.models import Approval, Cohort, CohortEventLink, CohortMember, Complaint, ComplaintFeatures, Customer, DetectedAnomaly, Letter, NetworkNode, PipelineRun, Remedy, RemedyPolicy
 from backtrace.db.session import get_session, make_session_factory
-from backtrace.remedy.engine import compute_cohort_remedies
+from backtrace.remedy.engine import RemedyRecomputeBlocked, compute_cohort_remedies
 
 RUN_ID = "test-remedy-engine-run"
 COHORT_ID = "test-remedy-engine-cohort"
@@ -69,7 +71,7 @@ def test_compute_cohort_remedies_skips_vulnerable_member(database_url_pipeline):
         _teardown(database_url_pipeline)
 
 
-def test_recompute_after_letter_and_approval_exist(database_url_pipeline):
+def test_recompute_refuses_when_approval_exists(database_url_pipeline):
     _seed(database_url_pipeline)
     session_factory = make_session_factory(database_url_pipeline)
     remedy_id = f"{COHORT_ID}-eng-complaint-1"
@@ -82,11 +84,11 @@ def test_recompute_after_letter_and_approval_exist(database_url_pipeline):
             session.add(Approval(id="eng-approval-1", remedy_id=remedy_id, approver_user_id="demo-team-lead", role="team_lead", auth_mode="dev", mfa_used=False, decision="approved", decided_at=dt.datetime.now(dt.timezone.utc)))
             session.commit()
 
-        result = compute_cohort_remedies(session_factory, COHORT_ID, "eng-policy-outage-credit-v1")  # must not raise IntegrityError
+        with pytest.raises(RemedyRecomputeBlocked):
+            compute_cohort_remedies(session_factory, COHORT_ID, "eng-policy-outage-credit-v1")
 
-        assert result["remedy_ids"] == [remedy_id]
         with get_session(database_url_pipeline) as session:
-            assert session.get(Letter, "eng-letter-1") is None
-            assert session.get(Approval, "eng-approval-1") is None
+            assert session.get(Letter, "eng-letter-1") is not None
+            assert session.get(Approval, "eng-approval-1") is not None
     finally:
         _teardown(database_url_pipeline)
