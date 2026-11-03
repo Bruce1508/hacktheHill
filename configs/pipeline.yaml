@@ -17,8 +17,12 @@
 # 49 in / 102 out) and is already the account's stable model for generation.
 
 generation:
+  # Not wired to anything (#53): the dev-world generator's FakeTextProvider
+  # (backtrace_eval/generator/dev.py) always uses its own hardcoded
+  # prompt_version, never this value or cache_key() — keep this in sync with
+  # that default for documentation only.
   model_id: gemini-flash-lite-latest
-  prompt_version: dev-text-v2
+  prompt_version: dev-text-v1
 
 extraction:
   model_id: gemini-flash-lite-latest
