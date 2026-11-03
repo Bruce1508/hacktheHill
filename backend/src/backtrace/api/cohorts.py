@@ -11,7 +11,7 @@ from backtrace.contracts.remedy import RemedyComputeOut
 from backtrace.db.models import Cohort, CohortEventLink, CohortMember, Complaint, ComplaintEmbedding, DetectedAnomaly
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.pipeline.hypothesis import build_evidence_pack
-from backtrace.remedy.engine import RemedyAlreadyApproved, RemedyInputNotFound, compute_cohort_remedies
+from backtrace.remedy.engine import RemedyInputNotFound, RemedyRecomputeBlocked, compute_cohort_remedies
 
 router = APIRouter()
 
@@ -181,7 +181,7 @@ def run_cohort_remedy(cohort_id: str, policy_rule_id: Annotated[str, Query()], u
         result = compute_cohort_remedies(session_factory, cohort_id, policy_rule_id)
     except RemedyInputNotFound as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except RemedyAlreadyApproved as exc:
+    except RemedyRecomputeBlocked as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     with get_session(database_url) as session:
         append_audit(session, user.user_id, user.role, "dev", "cohort.remedy", "cohort", cohort_id, before={}, after=result)

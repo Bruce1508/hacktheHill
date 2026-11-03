@@ -6,7 +6,7 @@ import pytest
 
 from backtrace.db.models import Approval, Cohort, CohortEventLink, CohortMember, Complaint, ComplaintFeatures, Customer, DetectedAnomaly, Letter, NetworkNode, PipelineRun, Remedy, RemedyPolicy
 from backtrace.db.session import get_session, make_session_factory
-from backtrace.remedy.engine import RemedyAlreadyApproved, compute_cohort_remedies
+from backtrace.remedy.engine import RemedyRecomputeBlocked, compute_cohort_remedies
 
 RUN_ID = "test-remedy-engine-run"
 COHORT_ID = "test-remedy-engine-cohort"
@@ -84,7 +84,7 @@ def test_recompute_refuses_when_approval_exists(database_url_pipeline):
             session.add(Approval(id="eng-approval-1", remedy_id=remedy_id, approver_user_id="demo-team-lead", role="team_lead", auth_mode="dev", mfa_used=False, decision="approved", decided_at=dt.datetime.now(dt.timezone.utc)))
             session.commit()
 
-        with pytest.raises(RemedyAlreadyApproved):
+        with pytest.raises(RemedyRecomputeBlocked):
             compute_cohort_remedies(session_factory, COHORT_ID, "eng-policy-outage-credit-v1")
 
         with get_session(database_url_pipeline) as session:

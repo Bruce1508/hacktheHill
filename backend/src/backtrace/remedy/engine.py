@@ -32,7 +32,7 @@ class RemedyInputNotFound(LookupError):
     the API maps this to 404."""
 
 
-class RemedyAlreadyApproved(Exception):
+class RemedyRecomputeBlocked(Exception):
     """A remedy in this cohort already has an approval decision — recompute
     would silently delete it, so the API maps this to 409 instead."""
 
@@ -52,12 +52,16 @@ def compute_cohort_remedies(session_factory: sessionmaker, cohort_id: str, polic
 
         # Idempotent re-run: delete-then-recreate. letters/approvals FK the
         # remedy with no cascade, so remove them first (Approval -> Letter -> Remedy).
-        old_remedy_ids = select(Remedy.id).where(Remedy.cohort_id == cohort_id)
-        if session.execute(select(Approval.id).where(Approval.remedy_id.in_(old_remedy_ids)).limit(1)).first() is not None:
-            raise RemedyAlreadyApproved(f"cohort {cohort_id} has an approved remedy; recompute would delete it")
+        # Lock the remedy rows first — the same lock approve_remedy()
+        # (api/remedies.py) takes with with_for_update=True — so a concurrent
+        # approve blocks until this transaction commits/rolls back instead of
+        # racing the approval-existence check below.
+        old_remedy_ids = [row.id for row in session.execute(select(Remedy.id).where(Remedy.cohort_id == cohort_id).with_for_update())]
+        if old_remedy_ids and session.execute(select(Approval.id).where(Approval.remedy_id.in_(old_remedy_ids)).limit(1)).first() is not None:
+            raise RemedyRecomputeBlocked(f"cohort {cohort_id} has an approved remedy; recompute would delete it")
         session.query(Approval).filter(Approval.remedy_id.in_(old_remedy_ids)).delete(synchronize_session=False)
         session.query(Letter).filter(Letter.remedy_id.in_(old_remedy_ids)).delete(synchronize_session=False)
-        session.query(Remedy).filter(Remedy.cohort_id == cohort_id).delete()
+        session.query(Remedy).filter(Remedy.id.in_(old_remedy_ids)).delete(synchronize_session=False)
 
         computed = routed = 0
         remedy_ids: list[str] = []
