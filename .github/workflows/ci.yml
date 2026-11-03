@@ -40,6 +40,8 @@ jobs:
       - run: uv sync --frozen --extra dev
       - run: uv run ruff check src tests
       - run: uv run alembic upgrade head
+      - run: uv run python -m backtrace_eval.generator.cli generate --world-config ../configs/worlds/dev.yaml --out ../fixtures/dev
+      - run: uv run python -m backtrace_eval.generator.load --fixture ../fixtures/dev --database-url $DATABASE_URL_EVAL
       - run: uv run pytest -q
 
   web:
