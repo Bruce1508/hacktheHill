@@ -8,7 +8,7 @@ from typing import Protocol
 
 from sqlalchemy.orm import sessionmaker
 
-from backtrace.db.models import Cohort, Complaint, ComplaintFeatures, Letter, Remedy
+from backtrace.db.models import Cohort, ComplaintFeatures, Letter, Remedy
 from backtrace.gate.rules import check_amount, check_forbidden_phrases, check_vulnerability
 from backtrace.llm.cache import cache_key, get_cached, put_cached
 from backtrace.llm.providers import NO_RETRY, REQUEST_TIMEOUT_MS

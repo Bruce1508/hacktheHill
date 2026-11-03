@@ -176,7 +176,7 @@ def _event_candidates(session) -> list[Candidate]:
 
 def _anomaly_candidates(session, run_id: str) -> list[Candidate]:
     nodes_by_id = {n.id: n for n in session.execute(select(NetworkNode)).scalars().all()}
-    links_by_id = {l.id: l for l in session.execute(select(NetworkLink)).scalars().all()}
+    links_by_id = {link.id: link for link in session.execute(select(NetworkLink)).scalars().all()}
 
     rows = session.execute(select(DetectedAnomaly).where(DetectedAnomaly.run_id == run_id)).scalars().all()
     candidates = []
