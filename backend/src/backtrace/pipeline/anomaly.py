@@ -12,7 +12,7 @@ import numpy as np
 from sqlalchemy import delete, select
 from sqlalchemy.orm import sessionmaker
 
-from backtrace.db.models import DetectedAnomaly, Telemetry
+from backtrace.db.models import CohortEventLink, DetectedAnomaly, Telemetry
 from backtrace.llm.config import AnomalyParams
 from backtrace.pipeline._zscore import zscore
 
@@ -109,6 +109,10 @@ def run_anomaly_stage(session_factory: sessionmaker, run_id: str, params: Anomal
                 values = np.array([row[idx] for row in samples], dtype=float)
                 anomalies.extend(detect_anomalies(timestamps, values, series_key=series_key, metric=metric, params=params))
 
+        # #60: a retried/re-run attempt may already have downstream cohort_event_links
+        # pointing at this run's anomalies (created by a prior, later-failing pass of
+        # the same run_id) — clear those first or the delete below hits a FK violation.
+        session.execute(delete(CohortEventLink).where(CohortEventLink.run_id == run_id))
         session.execute(delete(DetectedAnomaly).where(DetectedAnomaly.run_id == run_id))
         for n, anomaly in enumerate(anomalies):
             session.add(
