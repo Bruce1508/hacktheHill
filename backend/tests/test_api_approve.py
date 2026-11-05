@@ -117,6 +117,43 @@ def test_cannot_approve_when_cohort_not_confirmed(database_url_pipeline, monkeyp
         _teardown(database_url_pipeline)
 
 
+def test_double_approval_returns_409_and_does_not_double_write(database_url_pipeline, monkeypatch):
+    monkeypatch.setenv("DATABASE_URL_PIPELINE", database_url_pipeline)
+    monkeypatch.setenv("AUTH_MODE", "dev")
+    _seed(database_url_pipeline, Decimal("1.75"), "pass")
+    client = TestClient(app)
+    lead = {"X-Demo-User": "demo-team-lead"}
+
+    try:
+        first = client.post("/remedies/approve-remedy/approve", headers=lead)
+        assert first.status_code == 200
+        second = client.post("/remedies/approve-remedy/approve", headers=lead)
+        assert second.status_code == 409
+
+        with get_session(database_url_pipeline) as session:
+            assert session.query(Approval).filter(Approval.remedy_id == "approve-remedy").count() == 1
+    finally:
+        _teardown(database_url_pipeline)
+
+
+def test_draft_after_approval_returns_409(database_url_pipeline, monkeypatch):
+    monkeypatch.setenv("DATABASE_URL_PIPELINE", database_url_pipeline)
+    monkeypatch.setenv("AUTH_MODE", "dev")
+    _seed(database_url_pipeline, Decimal("1.75"), "pass")
+    client = TestClient(app)
+    lead = {"X-Demo-User": "demo-team-lead"}
+
+    try:
+        approved = client.post("/remedies/approve-remedy/approve", headers=lead)
+        assert approved.status_code == 200
+
+        redraft = client.post("/remedies/approve-remedy/drafts", headers=lead)
+        assert redraft.status_code == 409
+        assert "already approved" in redraft.json()["detail"]
+    finally:
+        _teardown(database_url_pipeline)
+
+
 def test_cannot_compute_remedies_for_unconfirmed_cohort(database_url_pipeline, monkeypatch):
     monkeypatch.setenv("DATABASE_URL_PIPELINE", database_url_pipeline)
     monkeypatch.setenv("AUTH_MODE", "dev")
