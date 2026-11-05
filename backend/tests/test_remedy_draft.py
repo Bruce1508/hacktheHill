@@ -1,9 +1,11 @@
 import datetime as dt
 from decimal import Decimal
 
-from backtrace.db.models import Cohort, Complaint, ComplaintFeatures, Customer, Letter, PipelineRun, Remedy, RemedyPolicy
+import pytest
+
+from backtrace.db.models import Approval, Cohort, Complaint, ComplaintFeatures, Customer, Letter, PipelineRun, Remedy, RemedyPolicy
 from backtrace.db.session import get_session, make_session_factory
-from backtrace.remedy.draft import FakeLetterProvider, draft_letter
+from backtrace.remedy.draft import FakeLetterProvider, RemedyAlreadyApproved, draft_letter
 
 RUN_ID = "test-draft-run"
 
@@ -22,6 +24,7 @@ def _seed(database_url: str) -> None:
 
 def _teardown(database_url: str) -> None:
     with get_session(database_url) as session:
+        session.query(Approval).filter(Approval.remedy_id == "draft-remedy").delete()
         session.query(Letter).filter(Letter.remedy_id == "draft-remedy").delete()
         session.query(Remedy).filter(Remedy.id == "draft-remedy").delete()
         session.query(RemedyPolicy).filter(RemedyPolicy.id == "draft-policy-outage-credit-v1").delete()
@@ -56,6 +59,28 @@ class _CountingLetterProvider(FakeLetterProvider):
     def draft(self, amount, claimed_cause, issues):
         self.calls += 1
         return super().draft(amount, claimed_cause, issues)
+
+
+def test_draft_raises_when_approval_lands_during_the_call(database_url_pipeline):
+    """Simulates the TOCTOU interleaving: the API layer's own pre-check
+    (create_letter_draft) passed, but approve_remedy committed before
+    draft_letter took its row lock. We can't deterministically land a real
+    second thread inside that window, so we seed the Approval row directly
+    to reproduce the state draft_letter must observe under the lock."""
+    _seed(database_url_pipeline)
+    with get_session(database_url_pipeline) as session:
+        session.merge(Approval(id="approval-draft-remedy", remedy_id="draft-remedy", approver_user_id="u1", role="team_lead", auth_mode="dev", mfa_used=False, decision="approved", decided_at=dt.datetime.now(dt.timezone.utc)))
+        session.commit()
+    session_factory = make_session_factory(database_url_pipeline)
+    provider = FakeLetterProvider()
+
+    try:
+        with pytest.raises(RemedyAlreadyApproved):
+            draft_letter(session_factory, "draft-remedy", provider)
+        with get_session(database_url_pipeline) as session:
+            assert session.query(Letter).filter(Letter.remedy_id == "draft-remedy").count() == 0
+    finally:
+        _teardown(database_url_pipeline)
 
 
 def test_redraft_is_served_from_llm_cache(database_url_pipeline):
