@@ -4,7 +4,7 @@ import os
 import numpy as np
 from sqlalchemy import select, text
 
-from backtrace.db.models import DetectedAnomaly, PipelineRun
+from backtrace.db.models import Cohort, CohortEventLink, DetectedAnomaly, PipelineRun
 from backtrace.db.session import get_session, make_session_factory
 from backtrace.llm.config import AnomalyParams, PipelineConfig
 from backtrace.pipeline.anomaly import detect_anomalies, run_anomaly_stage
@@ -63,6 +63,41 @@ def test_a_flat_series_has_no_anomalies():
     values = np.full(n, 7.0)
     anomalies = detect_anomalies(_timestamps(n), values, series_key=("node-1", None), metric="packet_loss_pct", params=PARAMS)
     assert anomalies == []
+
+
+def test_rerun_succeeds_when_a_later_stage_already_linked_the_first_runs_anomalies():
+    """#60: linking creates cohort_event_links referencing detected_anomalies.
+    Re-running the same run_id (e.g. a worker retry of a job that failed
+    after reaching linking) must not hit a FK violation when the anomaly
+    stage clears its own rows."""
+    pipeline_url = os.environ["DATABASE_URL_PIPELINE"]
+    run_id = "test-anomaly-rerun-after-linking"
+    params = PipelineConfig.load().anomaly
+    session_factory = make_session_factory(pipeline_url)
+
+    with get_session(pipeline_url) as session:
+        session.merge(PipelineRun(run_id=run_id, dataset_profile="dev", dataset_seed=1, config={}, started_at=dt.datetime.now(dt.timezone.utc)))
+        session.commit()
+
+    try:
+        first = run_anomaly_stage(session_factory, run_id, params)
+        assert first["anomalies"] > 0
+
+        with get_session(pipeline_url) as session:
+            anomaly_id = session.execute(select(DetectedAnomaly.id).where(DetectedAnomaly.run_id == run_id)).scalars().first()
+            session.merge(Cohort(id="cohort-" + run_id, run_id=run_id, status="proposed", kind="linked"))
+            session.add(CohortEventLink(cohort_id="cohort-" + run_id, run_id=run_id, anomaly_id=anomaly_id, overlap_score=1.0, evidence={}))
+            session.commit()
+
+        second = run_anomaly_stage(session_factory, run_id, params)  # must not raise ForeignKeyViolation
+        assert second["anomalies"] > 0
+    finally:
+        with get_session(pipeline_url) as session:
+            session.execute(text("DELETE FROM app.cohort_event_links WHERE run_id = :rid"), {"rid": run_id})
+            session.execute(text("DELETE FROM app.cohorts WHERE run_id = :rid"), {"rid": run_id})
+            session.execute(text("DELETE FROM app.detected_anomalies WHERE run_id = :rid"), {"rid": run_id})
+            session.delete(session.get(PipelineRun, run_id))
+            session.commit()
 
 
 def test_run_anomaly_stage_is_idempotent_and_overlaps_dev_gold_events():
