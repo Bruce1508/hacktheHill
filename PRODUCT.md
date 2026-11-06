@@ -43,7 +43,7 @@ The current surface is an engineering and demo view. It loads synthetic complain
 
 - The running `dev-run-2` contains 1,600 synthetic complaint embeddings.
 - The current API and dashboard can show the latest run, the full scatter, and up to 100 complaint records.
-- Product and architecture truth lives in `Backtrace — Technical Design Doc.md`.
+- Product and architecture truth lives in `DESIGN.md` and `README.md`.
 - A real runtime screenshot exists at `docs/assets/backtrace-current-ui.png`.
 - No real customer data, production accuracy, regulator-score impact, or business-impact benchmark is available; future UI must not fabricate them.
 
