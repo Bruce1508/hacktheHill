@@ -38,12 +38,14 @@ This is deliberately **not** a chatbot, a sentiment dashboard, or an autonomous 
 
 ## See it running
 
-The screenshot below is captured from the local application against the real `dev-run-2` database state: **1,600 synthetic complaints** projected from their **768-dimensional embeddings**. It is the current engineering view, not a fabricated final-product mockup.
+**[backtrace.brucevo.site](https://backtrace.brucevo.site)** is the real, deployed application — not a mockup. Walk a complaint backlog through the full pipeline: symptom clustering, evidence linking, a cited root-cause hypothesis, a computed remedy, a drafted letter, a consistency gate, and a human approval with an audit trail.
+
+The screenshot below is an early engineering view — the complaint embedding scatter, from a 1,600-complaint synthetic run — captured before the cohort review and remedy workflow shown live above was built.
 
 ![Backtrace dashboard showing the dev-run-2 complaint embedding scatter](.github/assets/backtrace-current-ui.png)
 
 > [!NOTE]
-> The current scatter is a symptom/embedding view. It does **not** claim that visible groups are verified root causes. Incident cohorts are formed only after operational evidence linking.
+> The scatter is a symptom/embedding view, not a root-cause verdict. Incident cohorts are only formed after operational evidence linking — see the live demo for that full workflow.
 
 ## The demo story
 
