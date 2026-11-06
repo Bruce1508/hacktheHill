@@ -9,11 +9,14 @@
 **An evidence-first root-cause engine for telecom complaint backlogs.**<br>
 Built for the **Ciena track at Hack the Hill 2026** in Ottawa.
 
+[![Live demo](https://img.shields.io/badge/live_demo-backtrace.brucevo.site-E11D48?style=flat-square)](https://backtrace.brucevo.site)
 [![Hackathon](https://img.shields.io/badge/Hack_the_Hill-2026-E11D48?style=flat-square)](#why-backtrace)
 [![Data](https://img.shields.io/badge/data-synthetic_only-111111?style=flat-square)](#trust-boundaries)
 [![API](https://img.shields.io/badge/API-FastAPI-E11D48?style=flat-square)](#built-with)
 [![Web](https://img.shields.io/badge/web-Next.js_16-111111?style=flat-square)](#built-with)
 [![Database](https://img.shields.io/badge/data-TimescaleDB_%2B_pgvector-E11D48?style=flat-square)](#built-with)
+
+**[→ Try the live demo](https://backtrace.brucevo.site)**
 
 _Resolve the incident — not the inbox._
 
@@ -112,21 +115,24 @@ LLM responses are hash-cached, pipeline stages are idempotent per run, and the f
 
 ## Current build status
 
-Backtrace is under active hackathon development. This table describes the repository today, not the final pitch deck.
+Backtrace was built end-to-end for Hack the Hill 2026 and is deployed live at [backtrace.brucevo.site](https://backtrace.brucevo.site).
 
 | Capability | Status |
 | --- | --- |
 | Dockerized web, API, worker, and TimescaleDB stack | ✅ Working |
-| Synthetic `tiny` and `dev` worlds with isolated ground truth | ✅ Working |
+| Deployed to Vultr, reachable externally over HTTPS | ✅ Working |
+| Synthetic `tiny`, `dev`, and `held-out` worlds with isolated ground truth | ✅ Working |
 | PII redaction, Gemini structured extraction, persistent cache | ✅ Working |
 | Batched Gemini embeddings and deck.gl projection | ✅ Working |
-| Dev auth, pagination bounds, typed API contracts | ✅ Working |
-| Root-cause tables and configurable evidence weights | ✅ Working |
-| Rolling z-score telemetry anomaly stage | 🧪 Implemented on the current branch |
-| Complaint burst detection, HDBSCAN, evidence linking | 🚧 Next pipeline stages |
-| Cohort review, remedy, gate, approval, live ingestion | 🗺️ Demo roadmap |
+| Rolling z-score telemetry anomaly stage, complaint burst detection, HDBSCAN clustering | ✅ Working |
+| Evidence linking, cited hypothesis generation | ✅ Working |
+| Cohort review, remedy policy engine, letter drafting, consistency gate, RBAC'd approval + audit log | ✅ Working |
+| Online ingestion endpoint, vector-only cohort assignment | ✅ Working |
+| Held-out evaluation harness (`make eval`), frozen post-freeze metrics | ✅ Working |
+| Auth0 RBAC (replacing dev auth) | ✅ Working |
+| Cache-warmed, offline-capable demo path | ✅ Working |
 
-The implementation source of truth is [Backtrace — Technical Design Doc.md](Backtrace%20%E2%80%94%20Technical%20Design%20Doc.md). It documents the full ten-step demo, scoring model, trust boundaries, and explicit scope cuts.
+See [`docs/deploy-vultr.md`](docs/deploy-vultr.md) for the deploy runbook.
 
 ## Run locally
 
@@ -187,9 +193,9 @@ hacktheHill/
 │   ├── alembic/            # versioned Postgres migrations
 │   └── tests/              # unit, contract, DB, and pipeline tests
 ├── configs/                # pinned models, thresholds, worlds, policies
+├── docs/                   # deploy runbook, assets, eval reports
 ├── fixtures/tiny/          # committed offline fixture
-├── infra/                  # Docker Compose stack
-└── Backtrace — Technical Design Doc.md
+└── infra/                  # Docker Compose stack
 ```
 
 ---
