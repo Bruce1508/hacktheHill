@@ -1,6 +1,6 @@
 <div align="center">
 
-![Backtrace — resolve the incident, not the inbox](docs/assets/backtrace-hero.svg)
+![Backtrace — resolve the incident, not the inbox](.github/assets/backtrace-hero.svg)
 
 # Backtrace
 
@@ -40,7 +40,7 @@ This is deliberately **not** a chatbot, a sentiment dashboard, or an autonomous 
 
 The screenshot below is captured from the local application against the real `dev-run-2` database state: **1,600 synthetic complaints** projected from their **768-dimensional embeddings**. It is the current engineering view, not a fabricated final-product mockup.
 
-![Backtrace dashboard showing the dev-run-2 complaint embedding scatter](docs/assets/backtrace-current-ui.png)
+![Backtrace dashboard showing the dev-run-2 complaint embedding scatter](.github/assets/backtrace-current-ui.png)
 
 > [!NOTE]
 > The current scatter is a symptom/embedding view. It does **not** claim that visible groups are verified root causes. Incident cohorts are formed only after operational evidence linking.
@@ -132,7 +132,7 @@ Backtrace was built end-to-end for Hack the Hill 2026 and is deployed live at [b
 | Auth0 RBAC (replacing dev auth) | ✅ Working |
 | Cache-warmed, offline-capable demo path | ✅ Working |
 
-See [`docs/deploy-vultr.md`](docs/deploy-vultr.md) for the deploy runbook.
+Deployed via Docker Compose on Vultr — see `infra/docker-compose.yml`.
 
 ## Run locally
 
@@ -193,7 +193,6 @@ hacktheHill/
 │   ├── alembic/            # versioned Postgres migrations
 │   └── tests/              # unit, contract, DB, and pipeline tests
 ├── configs/                # pinned models, thresholds, worlds, policies
-├── docs/                   # deploy runbook, assets, eval reports
 ├── fixtures/tiny/          # committed offline fixture
 └── infra/                  # Docker Compose stack
 ```
